@@ -51,7 +51,7 @@ public class Board {
 
         int unitId = 0;
         for (int i = 0; i < NUMBER_OF_UNITS_PER_PLAYER; i++) {
-            
+
             // TODO: add mage too
             if (false) {
                 Mage magePlayerOne = new Mage(
