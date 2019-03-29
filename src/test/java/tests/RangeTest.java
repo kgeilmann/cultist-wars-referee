@@ -1,5 +1,13 @@
 package tests;
 
+import model.Board;
+import org.junit.Before;
+
 public class RangeTest {
-    // TODO
+    Board board;
+
+    @Before
+    public void initBoard() {
+        board = new Board();
+    }
 }
