@@ -15,11 +15,16 @@ public class ViewController {
     public static int BOARD_OFFSET_Y = (1080 - Board.HEIGHT * ENTITY_SIZE) / 2;
     public static int UNIT_ELEVATION = -20;
 
+    public static final int TILE_Z = -1;
+    public static final int SHADOW_Z = 0;
+    public static final int SELECTED_SHADOW_Z = 1;
+    public static final int UNIT_Z = 1;
+
     private BufferedGroup tileGroup;
     private GraphicEntityModule graphicEntityModule;
     private MultiplayerGameManager<Player> gameManager;
     private Board board;
-    private List<Group> unitSprites;
+    private List<Group> unitSpriteGroups;
 
 
     public ViewController(GraphicEntityModule graphicEntityModule, MultiplayerGameManager<Player> gameManager, Board board) {
@@ -33,7 +38,7 @@ public class ViewController {
 
         tileGroup = graphicEntityModule.createBufferedGroup()
                 .setX(BOARD_OFFSET_X - ENTITY_SIZE)
-                .setY(BOARD_OFFSET_Y - ENTITY_SIZE).setZIndex(-1);
+                .setY(BOARD_OFFSET_Y - ENTITY_SIZE).setZIndex(TILE_Z);
 
         int obstacleCounter = 0;
         for (int x = 1; x < Board.WIDTH + 1; x++) {
@@ -98,38 +103,20 @@ public class ViewController {
     }
 
     public void createUnitsView() {
-        unitSprites = new ArrayList<>();
+        unitSpriteGroups = new ArrayList<>();
 
         for (Unit unit : board.getUnits()) {
             if (unit.getPlayerId() == E.PLAYER_ONE_ID) {
                 if (unit.getClass().equals(Mage.class)) {
                     createUnitView("green_mage_1.png", unit);
                 } else {
-                    Sprite unitSprite = graphicEntityModule.createSprite()
-                            .setImage("green_gunman_1.png")
-                            .setZIndex(1);
-                    Sprite shadowSprite = graphicEntityModule.createSprite()
-                            .setImage("shadow.png")
-                            .setZIndex(0)
-                            .setY(20);
-                    Group unitGroup = graphicEntityModule.createGroup(unitSprite, shadowSprite);
-                    placeUnitViewOnTile(unitGroup, unit.getCol(), unit.getRow());
-                    unitSprites.add(unitGroup);
+                    createUnitView("green_gunman_1.png", unit);
                 }
             } else {
                 if (unit.getClass().equals(Mage.class)) {
                     createUnitView("red_mage_1.png", unit);
                 } else {
-                    Sprite unitSprite = graphicEntityModule.createSprite()
-                            .setImage("red_gunman_1.png")
-                            .setZIndex(1);
-                    Sprite shadowSprite = graphicEntityModule.createSprite()
-                            .setImage("shadow.png")
-                            .setZIndex(0)
-                            .setY(20);
-                    Group unitGroup = graphicEntityModule.createGroup(unitSprite, shadowSprite);
-                    placeUnitViewOnTile(unitGroup, unit.getCol(), unit.getRow());
-                    unitSprites.add(unitGroup);
+                    createUnitView("red_gunman_1.png", unit);
                 }
             }
         }
@@ -139,27 +126,36 @@ public class ViewController {
         Sprite unitSprite = graphicEntityModule.createSprite()
                 .setImage(sprite)
                 .setZIndex(1);
+        
         Sprite shadowSprite = graphicEntityModule.createSprite()
                 .setImage("shadow.png")
                 .setZIndex(0)
                 .setY(20);
         Group unitGroup = graphicEntityModule.createGroup(unitSprite, shadowSprite);
         placeUnitViewOnTile(unitGroup, unit.getCol(), unit.getRow());
+        unitSpriteGroups.add(unitGroup);
     }
 
-
-    public void updateView(Unit currentUnit, Action action) {
-        // TODO
+    public void updateView(Unit currentUnit, Action action, Tile affectedTile) {
+        // TODO: update view
         switch (action.getCommand()) {
             case WAIT:
                 break;
             case MOVE:
+                // TODO: add move animation
                 int unitId = currentUnit.getUnitId();
                 placeUnitViewOnTile(
-                        unitSprites.get(unitId),
+                        unitSpriteGroups.get(unitId),
                         currentUnit.getCol(),
                         currentUnit.getRow());
                 break;
+            case SHOOT:
+                // TODO: add shoot animation
+                int targetUnitId = Integer.parseInt(action.getTarget());
+                Unit targetUnit = board.getUnit(targetUnitId);
+                if (!targetUnit.isInGame()) {
+                    unitSpriteGroups.get(targetUnitId).setVisible(false);
+                }
         }
 
         // TODO: create animations

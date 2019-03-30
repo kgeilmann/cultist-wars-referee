@@ -44,4 +44,15 @@ public abstract class Unit {
     public int getUnitId() {
         return id;
     }
+
+    public double getHp() {
+        return hp;
+    }
+
+    public void takeDamage(double damage) {
+        hp = Math.max(0, hp - damage);
+        if (hp == 0) {
+            isInGame = false;
+        }
+    }
 }

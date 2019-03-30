@@ -2,6 +2,7 @@ package tests;
 
 import model.Action;
 import model.Board;
+import model.E;
 import model.Unit;
 import org.junit.Before;
 import org.junit.Test;
@@ -125,5 +126,66 @@ public class ValidActionTest {
         assertFalse(validActions.contains(new Action("MOVE", "DOWN")));
         assertFalse(validActions.contains(new Action("MOVE", "LEFT")));
         assertTrue(validActions.contains(new Action("WAIT", "0")));
+    }
+
+    @Test
+    public void ifNextToTileWithDeadEnemy_thenCanMoveThere() {
+        Unit currentUnit = board.getUnit(2);
+        currentUnit.setCol(1);
+        currentUnit.setRow(0);
+
+        currentUnit = board.getUnit(4);
+        currentUnit.setCol(0);
+        currentUnit.setRow(1);
+        currentUnit.takeDamage(10.0);
+
+        currentUnit = board.getUnit(0);
+        currentUnit.setCol(0);
+        currentUnit.setRow(0);
+
+        List<Action> validActions = board.getValidActions(currentUnit);
+
+        assertFalse(validActions.contains(new Action("MOVE", "UP")));
+        assertFalse(validActions.contains(new Action("MOVE", "RIGHT")));
+        assertTrue(validActions.contains(new Action("MOVE", "DOWN")));
+        assertFalse(validActions.contains(new Action("MOVE", "LEFT")));
+        assertTrue(validActions.contains(new Action("WAIT", "0")));
+    }
+
+    @Test
+    public void ifNoEnemyInRange_thenShootIsNotPossible() {
+        Unit currentUnit = board.getUnit(0);
+
+        List<Action> validActions = board.getValidActions(currentUnit);
+
+        assertFalse(validActions.contains(new Action(E.SHOOT, "1")));
+    }
+
+    @Test
+    public void ifAnEnemyIsInRange_thenShootIsPossible() {
+        Unit currentUnit = board.getUnit(0);
+        currentUnit.setCol(6);
+        currentUnit.setRow(3);
+
+        List<Action> validActions = board.getValidActions(currentUnit);
+
+        assertTrue(validActions.contains(new Action(E.SHOOT, "1")));
+        assertTrue(validActions.contains(new Action(E.SHOOT, "3")));
+        assertTrue(validActions.contains(new Action(E.SHOOT, "5")));
+    }
+
+    @Test
+    public void ifDeadEnemyIsInRange_thenCannotShootIt() {
+        Unit currentUnit = board.getUnit(0);
+        currentUnit.setCol(6);
+        currentUnit.setRow(3);
+        Unit targetUnit = board.getUnit(3);
+        targetUnit.takeDamage(10.0);
+
+        List<Action> validActions = board.getValidActions(currentUnit);
+
+        assertTrue(validActions.contains(new Action(E.SHOOT, "1")));
+        assertFalse(validActions.contains(new Action(E.SHOOT, "3")));
+        assertTrue(validActions.contains(new Action(E.SHOOT, "5")));
     }
 }

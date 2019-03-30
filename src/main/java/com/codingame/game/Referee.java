@@ -7,6 +7,7 @@ import com.codingame.gameengine.module.entities.GraphicEntityModule;
 import com.google.inject.Inject;
 import model.Action;
 import model.Board;
+import model.Tile;
 import model.Unit;
 import view.ViewController;
 
@@ -61,8 +62,16 @@ public class Referee extends AbstractReferee {
                 gameManager.endGame();
             }
 
-            board.update(currentUnit, action);
-            viewController.updateView(currentUnit, action);
+            Tile affectedTile = board.update(currentUnit, action);
+
+            if (action.getCommand().equals(Action.Command.SHOOT)) {
+                int targetId = Integer.parseInt(action.getTarget());
+                Unit targetUnit = board.getUnit(targetId);
+                gameManager.addToGameSummary("Unit " + targetUnit.getUnitId()
+                        + " shot. New hp: " + targetUnit.getHp());
+            }
+
+            viewController.updateView(currentUnit, action, affectedTile);
 
         } catch (TimeoutException e) {
             player.deactivate(String.format("$%d timeout!", player.getIndex()));
@@ -75,7 +84,7 @@ public class Referee extends AbstractReferee {
     }
 
     private void sendInitInput(Player player) {
-        // TODO
+        // TODO: send init input
     }
 
     private void sendInputs(Player player, int currentUnitId, List<Action> validActions) {

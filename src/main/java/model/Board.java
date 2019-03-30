@@ -40,6 +40,7 @@ public class Board {
         tiles[7][3].setType(Tile.Type.OBSTACLE);
         tiles[8][3].setType(Tile.Type.OBSTACLE);
 
+        // TODO: add more random obstacles
 
         return tiles;
     }
@@ -131,10 +132,10 @@ public class Board {
         }
 
         if (currentUnit.getClass().equals(Gunman.class)) {
-            // TODO: add shooting
             for (Unit enemyUnit : allUnits) {
                 if (enemyUnit.getPlayerId() != currentUnit.getPlayerId()
-                        && isInRange(currentUnit, enemyUnit)) {
+                        && isInRange(currentUnit, enemyUnit)
+                        && enemyUnit.isInGame()) {
                     validActions.add(
                             new Action(E.SHOOT, String.valueOf(enemyUnit.getUnitId())));
                 }
@@ -165,7 +166,7 @@ public class Board {
         // check if move is occupied by other unit
         boolean free = true;
         for (Unit unit : allUnits) {
-            if (unit.getCol() == col && unit.getRow() == row) {
+            if (unit.getCol() == col && unit.getRow() == row && unit.isInGame()) {
                 free = false;
                 break;
             }
@@ -177,26 +178,45 @@ public class Board {
         return allUnits.get(index);
     }
 
-    public void update(Unit currentUnit, Action action) {
+    public Tile update(Unit currentUnit, Action action) {
         switch (action.command) {
             case WAIT:
-                return;
+                return null;
             case MOVE:
                 switch (action.target) {
                     case "UP":
                         currentUnit.setRow(currentUnit.getRow() - 1);
-                        return;
+                        return null;
                     case "DOWN":
                         currentUnit.setRow(currentUnit.getRow() + 1);
-                        return;
+                        return null;
                     case "RIGHT":
                         currentUnit.setCol(currentUnit.getCol() + 1);
-                        return;
+                        return null;
                     case "LEFT":
                         currentUnit.setCol(currentUnit.getCol() - 1);
-                        return;
+                        return null;
                 }
+            case SHOOT:
+                // TODO: add obstacle checking
+                // TODO: add friendly fire
+                int targetId = Integer.parseInt(action.target);
+                Unit target = allUnits.get(targetId);
+                int distance = unitDistance(currentUnit, target);
+                double damage = E.MAX_DAMAGE - distance * E.DAMAGE_REDUCTION_COEFF;
+                target.takeDamage(damage);
+                return tiles[target.getCol()][target.getRow()];
+            default:
+                return null;
+
+
                 // TODO: handle rest of actions
         }
+    }
+
+    private int unitDistance(Unit currentUnit, Unit target) {
+        Tile unitTile = tiles[currentUnit.getCol()][currentUnit.getRow()];
+        Tile targetTile = tiles[target.getCol()][target.getRow()];
+        return unitTile.distanceFrom(targetTile);
     }
 }

@@ -4,3 +4,8 @@ import { GraphicEntityModule } from './entity-module/GraphicEntityModule.js';
 export const modules = [
 	GraphicEntityModule
 ];
+
+export const playerColors = [
+  '#6ac371', // mantis green,
+  '#ff1d5c' // radical red
+]
