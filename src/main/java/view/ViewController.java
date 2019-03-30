@@ -142,12 +142,14 @@ public class ViewController {
             case WAIT:
                 break;
             case MOVE:
-                // TODO: add move animation
+
                 int unitId = currentUnit.getUnitId();
                 placeUnitViewOnTile(
                         unitSpriteGroups.get(unitId),
                         currentUnit.getCol(),
                         currentUnit.getRow());
+
+                // TODO: turn when moving opposite direction
                 break;
             case SHOOT:
                 // TODO: add shoot animation
