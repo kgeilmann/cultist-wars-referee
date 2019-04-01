@@ -55,37 +55,35 @@ public class Board {
 
             // TODO: add mage too
             if (false) {
+                Tile tile = tiles[INITIAL_COLS[i]][INITIAL_ROWS[i]];
                 Mage magePlayerOne = new Mage(
                         unitId++,
-                        INITIAL_COLS[i],
-                        INITIAL_ROWS[i],
+                        tile,
                         E.PLAYER_ONE_ID);
                 playerOneUnits.add(magePlayerOne);
                 allUnits.add(magePlayerOne);
 
+                tile = tiles[INITIAL_COLS[i + NUMBER_OF_UNITS_PER_PLAYER]][INITIAL_ROWS[i + NUMBER_OF_UNITS_PER_PLAYER]];
                 Mage magePlayerTwo = new Mage(
                         unitId++,
-                        INITIAL_COLS[i + NUMBER_OF_UNITS_PER_PLAYER],
-                        INITIAL_ROWS[i + NUMBER_OF_UNITS_PER_PLAYER],
+                        tile,
                         E.PLAYER_TWO_ID
                 );
                 playerTwoUnits.add(magePlayerTwo);
                 allUnits.add(magePlayerTwo);
             } else {
-
+                Tile tile = tiles[INITIAL_COLS[i]][INITIAL_ROWS[i]];
                 Gunman gunmanPlayerOne = new Gunman(
                         unitId++,
-                        INITIAL_COLS[i],
-                        INITIAL_ROWS[i],
+                       tile,
                         E.PLAYER_ONE_ID);
-
                 playerOneUnits.add(gunmanPlayerOne);
                 allUnits.add(gunmanPlayerOne);
 
+                tile = tiles[INITIAL_COLS[i + NUMBER_OF_UNITS_PER_PLAYER]][INITIAL_ROWS[i + NUMBER_OF_UNITS_PER_PLAYER]];
                 Gunman gunmanPlayerTwo = new Gunman(
                         unitId++,
-                        INITIAL_COLS[i + NUMBER_OF_UNITS_PER_PLAYER],
-                        INITIAL_ROWS[i + NUMBER_OF_UNITS_PER_PLAYER],
+                        tile,
                         E.PLAYER_TWO_ID);
                 playerTwoUnits.add(gunmanPlayerTwo);
                 allUnits.add(gunmanPlayerTwo);
@@ -183,35 +181,56 @@ public class Board {
             case WAIT:
                 return null;
             case MOVE:
-                switch (action.target) {
-                    case "UP":
-                        currentUnit.setRow(currentUnit.getRow() - 1);
-                        return null;
-                    case "DOWN":
-                        currentUnit.setRow(currentUnit.getRow() + 1);
-                        return null;
-                    case "RIGHT":
-                        currentUnit.setCol(currentUnit.getCol() + 1);
-                        return null;
-                    case "LEFT":
-                        currentUnit.setCol(currentUnit.getCol() - 1);
-                        return null;
-                }
+                handleMove(currentUnit, action);
+                return null;
             case SHOOT:
-                // TODO: add obstacle checking
-                // TODO: add friendly fire
-                int targetId = Integer.parseInt(action.target);
-                Unit target = allUnits.get(targetId);
-                int distance = unitDistance(currentUnit, target);
-                double damage = E.MAX_DAMAGE - distance * E.DAMAGE_REDUCTION_COEFF;
-                target.takeDamage(damage);
-                return tiles[target.getCol()][target.getRow()];
+                return handleShooting(currentUnit, action);
             default:
                 return null;
 
 
                 // TODO: handle rest of actions
         }
+    }
+
+    private void handleMove(Unit currentUnit, Action action) {
+        switch (action.target) {
+            case "UP":
+                currentUnit.setTile(tiles[currentUnit.getCol()][currentUnit.getRow() - 1]);
+                break;
+            case "DOWN":
+                currentUnit.setTile(tiles[currentUnit.getCol()][currentUnit.getRow() + 1]);
+                break;
+            case "RIGHT":
+                currentUnit.setTile(tiles[currentUnit.getCol() + 1][currentUnit.getRow()]);
+                break;
+            case "LEFT":
+                currentUnit.setTile(tiles[currentUnit.getCol() - 1][currentUnit.getRow()]);
+                break;
+        }
+    }
+
+    private Tile handleShooting(Unit currentUnit, Action action) {
+        // TODO: add obstacle checking
+        // TODO: add friendly fire
+        int targetId = Integer.parseInt(action.target);
+        Unit target = allUnits.get(targetId);
+        int distance = unitDistance(currentUnit, target);
+
+        Tile startTile = tiles[currentUnit.getCol()][currentUnit.getRow()];
+        Tile targetTile = tiles[target.getCol()][target.getRow()];
+        Tile hitTile = checkBulletPath(startTile, targetTile, tiles);
+
+        if (hitTile.getUnit() != null) {
+            double damage = E.MAX_DAMAGE - distance * E.DAMAGE_REDUCTION_COEFF;
+            hitTile.getUnit().takeDamage(damage);
+        }
+        return hitTile;
+    }
+
+    private Tile checkBulletPath(Tile startTile, Tile targetTile, Tile[][] tiles) {
+        // TODO: check bullet path using Breshenham's algo
+        return null;
     }
 
     private int unitDistance(Unit currentUnit, Unit target) {

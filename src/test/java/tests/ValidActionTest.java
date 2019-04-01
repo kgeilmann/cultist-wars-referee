@@ -36,7 +36,7 @@ public class ValidActionTest {
     @Test
     public void ifNextToWall_dontIncludeMoveToThatDirection() {
         Unit currentUnit = board.getUnit(1);
-        currentUnit.setCol(Board.WIDTH - 1);
+        currentUnit.setTile(board.getTile(Board.WIDTH - 1, currentUnit.getRow()));
 
         List<Action> validActions = board.getValidActions(currentUnit);
 
@@ -50,8 +50,7 @@ public class ValidActionTest {
     @Test
     public void ifNextToObstacle_dontIncludeMoveToThatDirection() {
         Unit currentUnit = board.getUnit(2);
-        currentUnit.setCol(7);
-        currentUnit.setRow(2);
+        currentUnit.setTile(board.getTile(7, 2));
 
         List<Action> validActions = board.getValidActions(currentUnit);
 
@@ -65,8 +64,7 @@ public class ValidActionTest {
     @Test
     public void ifInCorner_dontIncludeMoveToThoseDirections() {
         Unit currentUnit = board.getUnit(5);
-        currentUnit.setCol(Board.WIDTH - 1);
-        currentUnit.setRow(Board.HEIGHT - 1);
+        currentUnit.setTile(board.getTile(Board.WIDTH - 1, Board.HEIGHT - 1));
 
         List<Action> validActions = board.getValidActions(currentUnit);
 
@@ -80,7 +78,7 @@ public class ValidActionTest {
     @Test
     public void ifNextToAUnit_dontIncludeMoveToThoseDirections() {
         Unit currentUnit = board.getUnit(0);
-        currentUnit.setRow(2);
+        currentUnit.setTile(board.getTile(currentUnit.getCol(), 2));
 
         List<Action> validActions = board.getValidActions(currentUnit);
 
@@ -94,7 +92,7 @@ public class ValidActionTest {
     @Test
     public void ifNextToTwoUnits_dontIncludeMoveToThoseDirections() {
         Unit currentUnit = board.getUnit(1);
-        currentUnit.setRow(4);
+        currentUnit.setTile(board.getTile(currentUnit.getCol(), 4));
 
         List<Action> validActions = board.getValidActions(currentUnit);
 
@@ -108,16 +106,13 @@ public class ValidActionTest {
     @Test
     public void ifCompletelySurrounded_validActionsIncludeNoPossibleMoves() {
         Unit currentUnit = board.getUnit(2);
-        currentUnit.setCol(1);
-        currentUnit.setRow(0);
+        currentUnit.setTile(board.getTile(1, 0));
 
         currentUnit = board.getUnit(4);
-        currentUnit.setCol(0);
-        currentUnit.setRow(1);
+        currentUnit.setTile(board.getTile(0, 1));
 
         currentUnit = board.getUnit(0);
-        currentUnit.setCol(0);
-        currentUnit.setRow(0);
+        currentUnit.setTile(board.getTile(0, 0));
 
         List<Action> validActions = board.getValidActions(currentUnit);
 
@@ -131,17 +126,14 @@ public class ValidActionTest {
     @Test
     public void ifNextToTileWithDeadEnemy_thenCanMoveThere() {
         Unit currentUnit = board.getUnit(2);
-        currentUnit.setCol(1);
-        currentUnit.setRow(0);
+        currentUnit.setTile(board.getTile(1, 0));
 
         currentUnit = board.getUnit(4);
-        currentUnit.setCol(0);
-        currentUnit.setRow(1);
+        currentUnit.setTile(board.getTile(0, 1));
         currentUnit.takeDamage(10.0);
 
         currentUnit = board.getUnit(0);
-        currentUnit.setCol(0);
-        currentUnit.setRow(0);
+        currentUnit.setTile(board.getTile(0, 0));
 
         List<Action> validActions = board.getValidActions(currentUnit);
 
@@ -164,8 +156,7 @@ public class ValidActionTest {
     @Test
     public void ifAnEnemyIsInRange_thenShootIsPossible() {
         Unit currentUnit = board.getUnit(0);
-        currentUnit.setCol(6);
-        currentUnit.setRow(3);
+        currentUnit.setTile(board.getTile(6, 3));
 
         List<Action> validActions = board.getValidActions(currentUnit);
 
@@ -177,8 +168,7 @@ public class ValidActionTest {
     @Test
     public void ifDeadEnemyIsInRange_thenCannotShootIt() {
         Unit currentUnit = board.getUnit(0);
-        currentUnit.setCol(6);
-        currentUnit.setRow(3);
+        currentUnit.setTile(board.getTile(6, 3));
         Unit targetUnit = board.getUnit(3);
         targetUnit.takeDamage(10.0);
 

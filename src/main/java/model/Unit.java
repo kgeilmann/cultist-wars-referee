@@ -3,34 +3,35 @@ package model;
 public abstract class Unit {
     protected  int id;
     protected double hp;
-    protected int col;
-    protected int row;
+    protected Tile tile;
     protected int playerId;
     protected boolean isInGame;
 
-    public Unit(int id, int col, int row, int playerId) {
+    public Unit(int id, Tile tile, int playerId) {
         this.id = id;
-        this.col = col;
-        this.row = row;
         this.playerId = playerId;
         hp = 10.0;
         isInGame = true;
+        tile.setUnit(this);
+        this.tile = tile;
+    }
+
+    public Tile getTile() {
+        return tile;
+    }
+
+    public void setTile(Tile tile) {
+        this.tile.setUnit(null);
+        tile.setUnit(this);
+        this.tile = tile;
     }
 
     public int getCol() {
-        return col;
+        return tile.getX();
     }
 
     public int getRow() {
-        return row;
-    }
-
-    public void setCol(int col) {
-        this.col = col;
-    }
-
-    public void setRow(int row) {
-        this.row = row;
+        return tile.getY();
     }
 
     public int getPlayerId() {
