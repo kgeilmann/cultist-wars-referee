@@ -32,6 +32,7 @@ public class Referee extends AbstractReferee {
         gameManager.setTurnMaxTime(50);
 
         board = new Board();
+        board.initExtraObstacles();
 
         viewController = new ViewController(graphicEntityModule, gameManager, board);
         viewController.createTilesView();

@@ -14,8 +14,6 @@ public class Board {
     private static String[] DIRECTIONS = new String[]{E.UP, E.RIGHT, E.DOWN, E.LEFT};
 
     private Tile[][] tiles;
-    private List<Unit> playerOneUnits;
-    private List<Unit> playerTwoUnits;
     private List<Unit> allUnits;
     private int currentUnit;
 
@@ -46,8 +44,6 @@ public class Board {
     }
 
     private void initUnits() {
-        playerOneUnits = new ArrayList<>();
-        playerTwoUnits = new ArrayList<>();
         allUnits = new ArrayList<>();
 
         int unitId = 0;
@@ -60,7 +56,6 @@ public class Board {
                         unitId++,
                         tile,
                         E.PLAYER_ONE_ID);
-                playerOneUnits.add(magePlayerOne);
                 allUnits.add(magePlayerOne);
 
                 tile = tiles[INITIAL_COLS[i + NUMBER_OF_UNITS_PER_PLAYER]][INITIAL_ROWS[i + NUMBER_OF_UNITS_PER_PLAYER]];
@@ -69,15 +64,13 @@ public class Board {
                         tile,
                         E.PLAYER_TWO_ID
                 );
-                playerTwoUnits.add(magePlayerTwo);
                 allUnits.add(magePlayerTwo);
             } else {
                 Tile tile = tiles[INITIAL_COLS[i]][INITIAL_ROWS[i]];
                 Gunman gunmanPlayerOne = new Gunman(
                         unitId++,
-                       tile,
+                        tile,
                         E.PLAYER_ONE_ID);
-                playerOneUnits.add(gunmanPlayerOne);
                 allUnits.add(gunmanPlayerOne);
 
                 tile = tiles[INITIAL_COLS[i + NUMBER_OF_UNITS_PER_PLAYER]][INITIAL_ROWS[i + NUMBER_OF_UNITS_PER_PLAYER]];
@@ -85,23 +78,19 @@ public class Board {
                         unitId++,
                         tile,
                         E.PLAYER_TWO_ID);
-                playerTwoUnits.add(gunmanPlayerTwo);
                 allUnits.add(gunmanPlayerTwo);
             }
         }
 
     }
 
+
+    public void initExtraObstacles() {
+        // TODO
+    }
+
     public List<Unit> getUnits() {
         return allUnits;
-    }
-
-    public List<Unit> getPlayerOneUnits() {
-        return playerOneUnits;
-    }
-
-    public List<Unit> getPlayerTwoUnits() {
-        return playerTwoUnits;
     }
 
     public Tile getTile(int col, int row) {
@@ -189,7 +178,7 @@ public class Board {
                 return null;
 
 
-                // TODO: handle rest of actions
+            // TODO: handle rest of actions
         }
     }
 
@@ -219,7 +208,7 @@ public class Board {
 
         Tile startTile = tiles[currentUnit.getCol()][currentUnit.getRow()];
         Tile targetTile = tiles[target.getCol()][target.getRow()];
-        Tile hitTile = checkBulletPath(startTile, targetTile, tiles);
+        Tile hitTile = checkBulletPath(startTile, targetTile);
 
         if (hitTile.getUnit() != null) {
             double damage = E.MAX_DAMAGE - distance * E.DAMAGE_REDUCTION_COEFF;
@@ -228,9 +217,47 @@ public class Board {
         return hitTile;
     }
 
-    private Tile checkBulletPath(Tile startTile, Tile targetTile, Tile[][] tiles) {
-        // TODO: check bullet path using Breshenham's algo
-        return null;
+    /*
+    Atapted from:
+    https://github.com/fragkakis/bresenham/blob/master/src/main/java/org/fragkakis/Bresenham.java
+     */
+    public Tile checkBulletPath(Tile startTile, Tile targetTile) {
+        int x0 = startTile.getX();
+        int y0 = startTile.getY();
+        int x1 = targetTile.getX();
+        int y1 = targetTile.getY();
+
+        int dx = Math.abs(x1 - x0);
+        int dy = Math.abs(y1 - y0);
+
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+
+        int err = dx - dy;
+        int e2;
+        int currentX = x0;
+        int currentY = y0;
+
+        while (true) {
+            if (currentX == x1 && currentY == y1) break;
+
+            e2 = 2* err;
+            if (e2 > -1 * dy) {
+                err -= dy;
+                currentX += sx;
+            }
+
+            if (e2 < dx) {
+                err += dx;
+                currentY += sy;
+            }
+
+            if (tiles[currentX][currentY].getType().equals(Tile.Type.OBSTACLE)
+                    || tiles[currentX][currentY].getUnit() != null) {
+                return tiles[currentX][currentY];
+            }
+        }
+        return targetTile;
     }
 
     private int unitDistance(Unit currentUnit, Unit target) {
@@ -238,4 +265,5 @@ public class Board {
         Tile targetTile = tiles[target.getCol()][target.getRow()];
         return unitTile.distanceFrom(targetTile);
     }
+
 }

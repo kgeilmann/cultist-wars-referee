@@ -67,11 +67,9 @@ public class Tile {
 
     @Override
     public String toString() {
-        switch (type) {
-            case OBSTACLE:
-                return "X";
-            default:
-                return ".";
-        }
+        return "Tile{" +
+                "x=" + x +
+                ", y=" + y +
+                '}';
     }
 }

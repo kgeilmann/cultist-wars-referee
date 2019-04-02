@@ -58,7 +58,6 @@ public class Agent1 {
 
         while (true) {
             int currentUnitId = scanner.nextInt();
-            long startingTime = System.currentTimeMillis();
             scanner.nextLine();
 
             int numberOfActions = scanner.nextInt();
@@ -76,7 +75,6 @@ public class Agent1 {
             Action chosenAction = validActions.get(counter++ % (validActions.size()));
             System.out.println(chosenAction);
             System.err.println("chosenAction: " + chosenAction);
-            System.err.println("elapsedTime: " + (System.currentTimeMillis() - startingTime));
         }
     }
 }
