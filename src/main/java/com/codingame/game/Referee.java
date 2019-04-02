@@ -13,6 +13,8 @@ import view.ViewController;
 
 import java.util.List;
 
+// TODO: make stub
+
 public class Referee extends AbstractReferee {
     public static int MAX_ROUNDS = 200;
     private static int FRAME_DURATION = 400;
@@ -37,6 +39,7 @@ public class Referee extends AbstractReferee {
         viewController = new ViewController(graphicEntityModule, gameManager, board);
         viewController.createTilesView();
         viewController.createUnitsView();
+        viewController.createFxView();
     }
 
 
@@ -66,10 +69,17 @@ public class Referee extends AbstractReferee {
             Tile affectedTile = board.update(currentUnit, action);
 
             if (action.getCommand().equals(Action.Command.SHOOT)) {
-                int targetId = Integer.parseInt(action.getTarget());
-                Unit targetUnit = board.getUnit(targetId);
-                gameManager.addToGameSummary("Unit " + targetUnit.getUnitId()
-                        + " shot. New hp: " + targetUnit.getHp());
+                Unit affectedUnit = affectedTile.getUnit();
+                if (affectedUnit != null) {
+                    gameManager.addToGameSummary("Unit " + currentUnit.getUnitId() +
+                            " hit unit "
+                            + affectedUnit.getUnitId()
+                            + ". New hp: " + affectedUnit.getHp());
+                } else {
+                    gameManager.addToGameSummary("Unit " + currentUnit.getUnitId() +
+                            " hit obstacle.");
+                }
+
             }
 
             viewController.updateView(currentUnit, action, affectedTile);

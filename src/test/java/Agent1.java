@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 
 
@@ -51,6 +52,7 @@ class Action {
 
 public class Agent1 {
     static int counter = 0;
+    static Random random = new Random();
 
 
     public static void main(String[] args) {
@@ -69,10 +71,10 @@ public class Agent1 {
                 validActions.add(new Action(actionString[0], actionString[1]));
             }
 
-//            int randomMoveIndex = E.random.nextInt(numberOfActions);
-//            Action chosenAction = validActions.get(randomMoveIndex);
+            int randomMoveIndex = random.nextInt(numberOfActions);
+            Action chosenAction = validActions.get(randomMoveIndex);
 //            Action chosenAction = validActions.size() > 1 ? validActions.get(1) : validActions.get(0);
-            Action chosenAction = validActions.get(counter++ % (validActions.size()));
+//            Action chosenAction = validActions.get(counter++ % (validActions.size()));
             System.out.println(chosenAction);
         }
     }

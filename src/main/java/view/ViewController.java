@@ -19,15 +19,21 @@ public class ViewController {
     public static final int SHADOW_Z = -2;
     public static final int SELECTED_SHADOW_Z = -1;
     public static final int UNIT_Z = 0;
+    public static final int BULLET_Z = 100;
 
     private BufferedGroup tileGroup;
     private GraphicEntityModule graphicEntityModule;
     private MultiplayerGameManager<Player> gameManager;
     private Board board;
     private List<Group> unitSpriteGroups;
+    private Sprite bulletSprite;
+    private SpriteAnimation cutAnimation;
 
 
-    public ViewController(GraphicEntityModule graphicEntityModule, MultiplayerGameManager<Player> gameManager, Board board) {
+    public ViewController(
+            GraphicEntityModule graphicEntityModule,
+            MultiplayerGameManager<Player> gameManager,
+            Board board) {
         this.graphicEntityModule = graphicEntityModule;
         this.gameManager = gameManager;
         this.board = board;
@@ -122,11 +128,27 @@ public class ViewController {
         }
     }
 
+    public void createFxView() {
+        bulletSprite = graphicEntityModule.createSprite()
+                .setImage("bullet.png")
+                .setX(BOARD_OFFSET_X)
+                .setY(BOARD_OFFSET_Y)
+                .setZIndex(BULLET_Z)
+                .setVisible(false);
+
+        cutAnimation = graphicEntityModule.createSpriteAnimation()
+                .setImages("cut_1.png", "cut_2.png")
+                .setX(BOARD_OFFSET_X)
+                .setY(BOARD_OFFSET_Y)
+                .setZIndex(BULLET_Z)
+                .setVisible(false);
+    }
+
     private void createUnitView(String sprite, Unit unit) {
         Sprite unitSprite = graphicEntityModule.createSprite()
                 .setImage(sprite)
-                .setZIndex(UNIT_Z + unit.getRow());
-        
+                .setZIndex(UNIT_Z);
+
         Sprite shadowSprite = graphicEntityModule.createSprite()
                 .setImage("shadow.png")
                 .setZIndex(SHADOW_Z)
@@ -137,7 +159,6 @@ public class ViewController {
     }
 
     public void updateView(Unit currentUnit, Action action, Tile affectedTile) {
-        // TODO: update view
         switch (action.getCommand()) {
             case WAIT:
                 break;
@@ -152,19 +173,47 @@ public class ViewController {
                 // TODO: turn when moving opposite direction
                 break;
             case SHOOT:
-                // TODO: add shoot animation
-                int targetUnitId = Integer.parseInt(action.getTarget());
-                Unit targetUnit = board.getUnit(targetUnitId);
-                if (!targetUnit.isInGame()) {
-                    unitSpriteGroups.get(targetUnitId).setVisible(false);
+                Unit hitUnit = affectedTile.getUnit();
+                if (hitUnit != null && !hitUnit.isInGame()) {
+                    unitSpriteGroups.get(hitUnit.getUnitId()).setVisible(false);
                 }
+                bulletAnimation(currentUnit.getTile(), affectedTile);
+                unitHitAnimation(affectedTile);
+
         }
 
         // TODO: create animations
     }
 
-    private void placeUnitViewOnTile(Entity unitAnimation, int col, int row) {
-        unitAnimation.setX(BOARD_OFFSET_X + col * ENTITY_SIZE)
-                .setY(BOARD_OFFSET_Y + row * ENTITY_SIZE + UNIT_ELEVATION);
+    private void unitHitAnimation(Tile affectedTile) {
+        cutAnimation
+                .setVisible(true)
+                .setX(BOARD_OFFSET_X + affectedTile.getX() * ENTITY_SIZE)
+                .setY(BOARD_OFFSET_Y + affectedTile.getY() * ENTITY_SIZE)
+                .setPlaying(true);
+        graphicEntityModule.commitEntityState(0.6, cutAnimation);
+        cutAnimation.setVisible(false);
+        graphicEntityModule.commitEntityState(1, cutAnimation);
+    }
+
+    private void bulletAnimation(Tile startTile, Tile endTile) {
+        int distance = startTile.distanceFrom(endTile);
+        bulletSprite
+                .setVisible(true)
+                .setX(BOARD_OFFSET_X + startTile.getX() * ENTITY_SIZE)
+                .setY(BOARD_OFFSET_Y + startTile.getY() * ENTITY_SIZE);
+        graphicEntityModule.commitEntityState(0, bulletSprite);
+        bulletSprite
+                .setX(BOARD_OFFSET_X + endTile.getX() * ENTITY_SIZE)
+                .setY(BOARD_OFFSET_Y + endTile.getY() * ENTITY_SIZE);
+        graphicEntityModule.commitEntityState(distance * 0.1, bulletSprite);
+        bulletSprite.setVisible(false);
+        graphicEntityModule.commitEntityState((distance + 1) * 0.1, bulletSprite);
+    }
+
+    private void placeUnitViewOnTile(Entity unit, int col, int row) {
+        unit.setX(BOARD_OFFSET_X + col * ENTITY_SIZE)
+                .setY(BOARD_OFFSET_Y + row * ENTITY_SIZE + UNIT_ELEVATION)
+                .setZIndex(UNIT_Z + row);
     }
 }

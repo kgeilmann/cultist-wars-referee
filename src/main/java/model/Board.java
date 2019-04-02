@@ -12,7 +12,7 @@ public class Board {
     private static int[] colModifiers = new int[]{0, 1, 0, -1};
     private static int[] rowModifiers = new int[]{-1, 0, 1, 0};
     private static String[] DIRECTIONS = new String[]{E.UP, E.RIGHT, E.DOWN, E.LEFT};
-    private static final double OBSTACLE_CHANCE = 0.125;
+    private static final double OBSTACLE_CHANCE = 0.2;
 
     private Tile[][] tiles;
     private List<Unit> allUnits;
@@ -52,7 +52,8 @@ public class Board {
                         E.PLAYER_ONE_ID);
                 allUnits.add(magePlayerOne);
 
-                tile = tiles[INITIAL_COLS[i + NUMBER_OF_UNITS_PER_PLAYER]][INITIAL_ROWS[i + NUMBER_OF_UNITS_PER_PLAYER]];
+                tile = tiles[INITIAL_COLS[i + NUMBER_OF_UNITS_PER_PLAYER]]
+                        [INITIAL_ROWS[i + NUMBER_OF_UNITS_PER_PLAYER]];
                 Mage magePlayerTwo = new Mage(
                         unitId++,
                         tile,
@@ -67,7 +68,8 @@ public class Board {
                         E.PLAYER_ONE_ID);
                 allUnits.add(gunmanPlayerOne);
 
-                tile = tiles[INITIAL_COLS[i + NUMBER_OF_UNITS_PER_PLAYER]][INITIAL_ROWS[i + NUMBER_OF_UNITS_PER_PLAYER]];
+                tile = tiles[INITIAL_COLS[i + NUMBER_OF_UNITS_PER_PLAYER]]
+                        [INITIAL_ROWS[i + NUMBER_OF_UNITS_PER_PLAYER]];
                 Gunman gunmanPlayerTwo = new Gunman(
                         unitId++,
                         tile,
@@ -239,7 +241,7 @@ public class Board {
         while (true) {
             if (currentX == x1 && currentY == y1) break;
 
-            e2 = 2* err;
+            e2 = 2 * err;
             if (e2 > -1 * dy) {
                 err -= dy;
                 currentX += sx;
@@ -251,7 +253,8 @@ public class Board {
             }
 
             if (tiles[currentX][currentY].getType().equals(Tile.Type.OBSTACLE)
-                    || tiles[currentX][currentY].getUnit() != null) {
+                    || (tiles[currentX][currentY].getUnit() != null
+                    && tiles[currentX][currentY].getUnit().isInGame)) {
                 return tiles[currentX][currentY];
             }
         }
