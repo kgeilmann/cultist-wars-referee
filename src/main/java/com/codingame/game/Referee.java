@@ -45,6 +45,7 @@ public class Referee extends AbstractReferee {
 
     @Override
     public void gameTurn(int turn) {
+        // TODO: change game turn structure - make move and action phases
         // Find current unit still in game
         Unit currentUnit = board.getNextUnit();
         while (!currentUnit.isInGame()) {

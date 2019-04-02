@@ -113,13 +113,13 @@ public class ViewController {
 
         for (Unit unit : board.getUnits()) {
             if (unit.getPlayerId() == E.PLAYER_ONE_ID) {
-                if (unit.getClass().equals(Mage.class)) {
+                if (unit.getClass().equals(Priest.class)) {
                     createUnitView("green_mage_1.png", unit);
                 } else {
                     createUnitView("green_gunman_1.png", unit);
                 }
             } else {
-                if (unit.getClass().equals(Mage.class)) {
+                if (unit.getClass().equals(Priest.class)) {
                     createUnitView("red_mage_1.png", unit);
                 } else {
                     createUnitView("red_gunman_1.png", unit);

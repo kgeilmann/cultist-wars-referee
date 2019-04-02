@@ -6,9 +6,12 @@ import java.util.List;
 public class Board {
     public static int WIDTH = 12;
     public static int HEIGHT = 7;
-    public static int NUMBER_OF_UNITS_PER_PLAYER = 3;
-    private static int[] INITIAL_COLS = new int[]{1, 1, 1, 10, 10, 10};
+    public static int NUMBER_OF_GUNMAN_PER_PLAYER = 3;
+    private static int[] INITIAL_COLS = new int[]{1, 0, 1, 10, 11, 10};
     private static int[] INITIAL_ROWS = new int[]{1, 3, 5, 1, 3, 5};
+    private static int[] INITIAL_PRIEST_COLS = new int[]{2, Board.WIDTH - 3};
+    private static int[] INITIAL_PRIEST_ROWS = new int[]{3, 3};
+
     private static int[] colModifiers = new int[]{0, 1, 0, -1};
     private static int[] rowModifiers = new int[]{-1, 0, 1, 0};
     private static String[] DIRECTIONS = new String[]{E.UP, E.RIGHT, E.DOWN, E.LEFT};
@@ -16,12 +19,15 @@ public class Board {
 
     private Tile[][] tiles;
     private List<Unit> allUnits;
+    private List<Unit> playerOneUnits;
+    private List<Unit> playerTwoUnits;
     private int currentUnit;
 
 
     public Board() {
         initTiles();
-        initUnits();
+        initGunmen();
+        initPriests();
         currentUnit = 0;
     }
 
@@ -37,47 +43,50 @@ public class Board {
         return tiles;
     }
 
-    private void initUnits() {
+    private void initGunmen() {
         allUnits = new ArrayList<>();
+        playerOneUnits = new ArrayList<>();
+        playerTwoUnits = new ArrayList<>();
 
         int unitId = 0;
-        for (int i = 0; i < NUMBER_OF_UNITS_PER_PLAYER; i++) {
+        for (int i = 0; i < NUMBER_OF_GUNMAN_PER_PLAYER; i++) {
+            Tile tile = tiles[INITIAL_COLS[i]][INITIAL_ROWS[i]];
+            Gunman gunmanPlayerOne = new Gunman(
+                    unitId++,
+                    tile,
+                    E.PLAYER_ONE_ID);
+            allUnits.add(gunmanPlayerOne);
+            playerOneUnits.add(gunmanPlayerOne);
 
-            // TODO: add mage too
-            if (false) {
-                Tile tile = tiles[INITIAL_COLS[i]][INITIAL_ROWS[i]];
-                Mage magePlayerOne = new Mage(
-                        unitId++,
-                        tile,
-                        E.PLAYER_ONE_ID);
-                allUnits.add(magePlayerOne);
+            tile = tiles[INITIAL_COLS[i + NUMBER_OF_GUNMAN_PER_PLAYER]]
+                    [INITIAL_ROWS[i + NUMBER_OF_GUNMAN_PER_PLAYER]];
+            Gunman gunmanPlayerTwo = new Gunman(
+                    unitId++,
+                    tile,
+                    E.PLAYER_TWO_ID);
+            allUnits.add(gunmanPlayerTwo);
+            playerTwoUnits.add(gunmanPlayerTwo);
 
-                tile = tiles[INITIAL_COLS[i + NUMBER_OF_UNITS_PER_PLAYER]]
-                        [INITIAL_ROWS[i + NUMBER_OF_UNITS_PER_PLAYER]];
-                Mage magePlayerTwo = new Mage(
-                        unitId++,
-                        tile,
-                        E.PLAYER_TWO_ID
-                );
-                allUnits.add(magePlayerTwo);
-            } else {
-                Tile tile = tiles[INITIAL_COLS[i]][INITIAL_ROWS[i]];
-                Gunman gunmanPlayerOne = new Gunman(
-                        unitId++,
-                        tile,
-                        E.PLAYER_ONE_ID);
-                allUnits.add(gunmanPlayerOne);
-
-                tile = tiles[INITIAL_COLS[i + NUMBER_OF_UNITS_PER_PLAYER]]
-                        [INITIAL_ROWS[i + NUMBER_OF_UNITS_PER_PLAYER]];
-                Gunman gunmanPlayerTwo = new Gunman(
-                        unitId++,
-                        tile,
-                        E.PLAYER_TWO_ID);
-                allUnits.add(gunmanPlayerTwo);
-            }
         }
+    }
 
+    private void initPriests() {
+        Tile tile = tiles[INITIAL_PRIEST_COLS[0]][INITIAL_PRIEST_ROWS[0]];
+        Priest priestPlayerOne = new Priest(
+                6,
+                tile,
+                E.PLAYER_ONE_ID);
+        allUnits.add(priestPlayerOne);
+        playerOneUnits.add(priestPlayerOne);
+
+        tile = tiles[INITIAL_PRIEST_COLS[1]][INITIAL_PRIEST_ROWS[1]];
+        Priest priestPlayerTwo = new Priest(
+                7,
+                tile,
+                E.PLAYER_TWO_ID
+        );
+        allUnits.add(priestPlayerTwo);
+        playerTwoUnits.add(priestPlayerTwo);
     }
 
 
@@ -130,7 +139,7 @@ public class Board {
                 }
             }
         } else {
-            // TODO: add mage actions
+            // TODO: add priest actions
         }
 
 
