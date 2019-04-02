@@ -15,10 +15,10 @@ public class ViewController {
     public static int BOARD_OFFSET_Y = (1080 - Board.HEIGHT * ENTITY_SIZE) / 2;
     public static int UNIT_ELEVATION = -20;
 
-    public static final int TILE_Z = -1;
-    public static final int SHADOW_Z = 0;
-    public static final int SELECTED_SHADOW_Z = 1;
-    public static final int UNIT_Z = 1;
+    public static final int TILE_Z = -3;
+    public static final int SHADOW_Z = -2;
+    public static final int SELECTED_SHADOW_Z = -1;
+    public static final int UNIT_Z = 0;
 
     private BufferedGroup tileGroup;
     private GraphicEntityModule graphicEntityModule;
@@ -45,7 +45,7 @@ public class ViewController {
             for (int y = 1; y < Board.HEIGHT + 1; y++) {
                 if (board.getTile(x - 1, y - 1).getType().equals(Tile.Type.OBSTACLE)) {
                     tileGroup.add(graphicEntityModule.createSprite()
-                            .setImage("obstacle_" + obstacleCounter++ + ".png")
+                            .setImage("obstacle_" + E.random.nextInt(6) + ".png")
                             .setX(x * ENTITY_SIZE)
                             .setY(y * ENTITY_SIZE));
                 } else {
@@ -125,11 +125,11 @@ public class ViewController {
     private void createUnitView(String sprite, Unit unit) {
         Sprite unitSprite = graphicEntityModule.createSprite()
                 .setImage(sprite)
-                .setZIndex(1);
+                .setZIndex(UNIT_Z + unit.getRow());
         
         Sprite shadowSprite = graphicEntityModule.createSprite()
                 .setImage("shadow.png")
-                .setZIndex(0)
+                .setZIndex(SHADOW_Z)
                 .setY(20);
         Group unitGroup = graphicEntityModule.createGroup(unitSprite, shadowSprite);
         placeUnitViewOnTile(unitGroup, unit.getCol(), unit.getRow());

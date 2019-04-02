@@ -74,7 +74,6 @@ public class Agent1 {
 //            Action chosenAction = validActions.size() > 1 ? validActions.get(1) : validActions.get(0);
             Action chosenAction = validActions.get(counter++ % (validActions.size()));
             System.out.println(chosenAction);
-            System.err.println("chosenAction: " + chosenAction);
         }
     }
 }

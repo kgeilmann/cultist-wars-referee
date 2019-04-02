@@ -12,6 +12,7 @@ public class Board {
     private static int[] colModifiers = new int[]{0, 1, 0, -1};
     private static int[] rowModifiers = new int[]{-1, 0, 1, 0};
     private static String[] DIRECTIONS = new String[]{E.UP, E.RIGHT, E.DOWN, E.LEFT};
+    private static final double OBSTACLE_CHANCE = 0.125;
 
     private Tile[][] tiles;
     private List<Unit> allUnits;
@@ -32,13 +33,6 @@ public class Board {
                 tiles[x][y] = new Tile(x, y, Tile.Type.FLOOR);
             }
         }
-
-        tiles[3][3].setType(Tile.Type.OBSTACLE);
-        tiles[4][3].setType(Tile.Type.OBSTACLE);
-        tiles[7][3].setType(Tile.Type.OBSTACLE);
-        tiles[8][3].setType(Tile.Type.OBSTACLE);
-
-        // TODO: add more random obstacles
 
         return tiles;
     }
@@ -86,7 +80,13 @@ public class Board {
 
 
     public void initExtraObstacles() {
-        // TODO
+        for (int col = 3; col < 9; col++) {
+            for (int row = 0; row < Board.HEIGHT; row++) {
+                if (E.random.nextDouble() < OBSTACLE_CHANCE) {
+                    tiles[col][row].setType(Tile.Type.OBSTACLE);
+                }
+            }
+        }
     }
 
     public List<Unit> getUnits() {
@@ -200,8 +200,6 @@ public class Board {
     }
 
     private Tile handleShooting(Unit currentUnit, Action action) {
-        // TODO: add obstacle checking
-        // TODO: add friendly fire
         int targetId = Integer.parseInt(action.target);
         Unit target = allUnits.get(targetId);
         int distance = unitDistance(currentUnit, target);
@@ -218,7 +216,7 @@ public class Board {
     }
 
     /*
-    Atapted from:
+    Adapted from:
     https://github.com/fragkakis/bresenham/blob/master/src/main/java/org/fragkakis/Bresenham.java
      */
     public Tile checkBulletPath(Tile startTile, Tile targetTile) {
