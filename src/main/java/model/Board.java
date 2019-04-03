@@ -19,8 +19,6 @@ public class Board {
 
     private Tile[][] tiles;
     private List<Unit> allUnits;
-    private List<Unit> playerOneUnits;
-    private List<Unit> playerTwoUnits;
     private int currentUnit;
 
 
@@ -45,48 +43,42 @@ public class Board {
 
     private void initGunmen() {
         allUnits = new ArrayList<>();
-        playerOneUnits = new ArrayList<>();
-        playerTwoUnits = new ArrayList<>();
 
         int unitId = 0;
         for (int i = 0; i < NUMBER_OF_GUNMAN_PER_PLAYER; i++) {
             Tile tile = tiles[INITIAL_COLS[i]][INITIAL_ROWS[i]];
-            Gunman gunmanPlayerOne = new Gunman(
+            Cultist cultistPlayerOne = new Cultist(
                     unitId++,
                     tile,
                     E.PLAYER_ONE_ID);
-            allUnits.add(gunmanPlayerOne);
-            playerOneUnits.add(gunmanPlayerOne);
+            allUnits.add(cultistPlayerOne);
 
             tile = tiles[INITIAL_COLS[i + NUMBER_OF_GUNMAN_PER_PLAYER]]
                     [INITIAL_ROWS[i + NUMBER_OF_GUNMAN_PER_PLAYER]];
-            Gunman gunmanPlayerTwo = new Gunman(
+            Cultist cultistPlayerTwo = new Cultist(
                     unitId++,
                     tile,
                     E.PLAYER_TWO_ID);
-            allUnits.add(gunmanPlayerTwo);
-            playerTwoUnits.add(gunmanPlayerTwo);
+            allUnits.add(cultistPlayerTwo);
 
         }
     }
 
     private void initPriests() {
         Tile tile = tiles[INITIAL_PRIEST_COLS[0]][INITIAL_PRIEST_ROWS[0]];
-        Priest priestPlayerOne = new Priest(
+        CultLeader cultLeaderPlayerOne = new CultLeader(
                 6,
                 tile,
                 E.PLAYER_ONE_ID);
-        allUnits.add(priestPlayerOne);
-        playerOneUnits.add(priestPlayerOne);
+        allUnits.add(cultLeaderPlayerOne);
 
         tile = tiles[INITIAL_PRIEST_COLS[1]][INITIAL_PRIEST_ROWS[1]];
-        Priest priestPlayerTwo = new Priest(
+        CultLeader cultLeaderPlayerTwo = new CultLeader(
                 7,
                 tile,
                 E.PLAYER_TWO_ID
         );
-        allUnits.add(priestPlayerTwo);
-        playerTwoUnits.add(priestPlayerTwo);
+        allUnits.add(cultLeaderPlayerTwo);
     }
 
 
@@ -113,35 +105,60 @@ public class Board {
         return allUnits.get(currentUnit++);
     }
 
-    public List<Action> getValidActions(Unit currentUnit) {
+    public List<Action> getValidActions(int playerId) {
         List<Action> validActions = new ArrayList<>();
-        validActions.add(new Action(E.WAIT, "0"));
+        for (Unit currentUnit : allUnits) {
+            if (!currentUnit.isInGame() || currentUnit.getPlayerId() != playerId) continue;
 
-        for (int i = 0; i < 4; i++) {
-            int col = currentUnit.getCol() + colModifiers[i];
-            int row = currentUnit.getRow() + rowModifiers[i];
+            validActions.add(new Action(currentUnit.getUnitId(), E.WAIT, "0"));
 
-            if (!areValidCoordinates(col, row) || !isTileFree(col, row)) {
-                continue;
+            for (int i = 0; i < 4; i++) {
+                int col = currentUnit.getCol() + colModifiers[i];
+                int row = currentUnit.getRow() + rowModifiers[i];
+
+                if (!areValidCoordinates(col, row) || !isTileFree(col, row)) {
+                    continue;
+                }
+
+                validActions.add(new Action(
+                        currentUnit.getUnitId(),
+                        E.MOVE,
+                        DIRECTIONS[i]));
+
             }
 
-            validActions.add(new Action(E.MOVE, DIRECTIONS[i]));
-
-        }
-
-        if (currentUnit.getClass().equals(Gunman.class)) {
-            for (Unit enemyUnit : allUnits) {
-                if (enemyUnit.getPlayerId() != currentUnit.getPlayerId()
-                        && isInRange(currentUnit, enemyUnit)
-                        && enemyUnit.isInGame()) {
-                    validActions.add(
-                            new Action(E.SHOOT, String.valueOf(enemyUnit.getUnitId())));
+            if (currentUnit.getClass().equals(Cultist.class)) {
+                for (Unit enemyUnit : allUnits) {
+                    if (enemyUnit.getPlayerId() != currentUnit.getPlayerId()
+                            && isInRange(currentUnit, enemyUnit)
+                            && enemyUnit.isInGame()) {
+                        validActions.add(
+                                new Action(
+                                        currentUnit.getUnitId(),
+                                        E.SHOOT,
+                                        String.valueOf(enemyUnit.getUnitId())));
+                    }
+                }
+            } else {
+                for (int i = 0; i < 4; i++) {
+                    int col = currentUnit.getCol() + colModifiers[i];
+                    int row = currentUnit.getRow() + rowModifiers[i];
+                    if (col >= 0 && col < Board.WIDTH && row >=0 && row < Board.HEIGHT) {
+                        Unit neighborUnit = tiles[col][row].getUnit();
+                        if (neighborUnit != null
+                                && neighborUnit.isInGame()
+                                && neighborUnit.getPlayerId() != currentUnit.getPlayerId()
+                                && neighborUnit.getClass().equals(Cultist.class)) {
+                            validActions.add(new Action(
+                                    currentUnit.getUnitId(),
+                                    E.CONVERT,
+                                    String.valueOf(neighborUnit.getUnitId())
+                            ));
+                        }
+                    }
                 }
             }
-        } else {
-            // TODO: add priest actions
         }
-
 
         return validActions;
     }
@@ -149,7 +166,7 @@ public class Board {
     private boolean isInRange(Unit currentUnit, Unit enemyUnit) {
         return tiles[currentUnit.getCol()][currentUnit.getRow()]
                 .distanceFrom(tiles[enemyUnit.getCol()][enemyUnit.getRow()])
-                <= Gunman.RANGE;
+                <= Cultist.RANGE;
     }
 
     private boolean areValidCoordinates(int col, int row) {
@@ -177,7 +194,7 @@ public class Board {
     }
 
     public Tile update(Unit currentUnit, Action action) {
-        switch (action.command) {
+        switch (action.getCommand()) {
             case WAIT:
                 return null;
             case MOVE:
@@ -185,16 +202,21 @@ public class Board {
                 return null;
             case SHOOT:
                 return handleShooting(currentUnit, action);
+            case CONVERT:
+                return handleConvert(action);
             default:
                 return null;
-
-
-            // TODO: handle rest of actions
         }
     }
 
+    private Tile handleConvert(Action action) {
+        Unit affectedUnit = allUnits.get(Integer.parseInt(action.getTarget()));
+        affectedUnit.setPlayerId((affectedUnit.getPlayerId() + 1) % 2);
+        return affectedUnit.getTile();
+    }
+
     private void handleMove(Unit currentUnit, Action action) {
-        switch (action.target) {
+        switch (action.getTarget()) {
             case "UP":
                 currentUnit.setTile(tiles[currentUnit.getCol()][currentUnit.getRow() - 1]);
                 break;
@@ -211,7 +233,7 @@ public class Board {
     }
 
     private Tile handleShooting(Unit currentUnit, Action action) {
-        int targetId = Integer.parseInt(action.target);
+        int targetId = Integer.parseInt(action.getTarget());
         Unit target = allUnits.get(targetId);
         int distance = unitDistance(currentUnit, target);
 

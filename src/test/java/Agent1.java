@@ -5,14 +5,16 @@ import java.util.Scanner;
 
 
 enum Command {
-    MOVE, SHOOT, HEAL, WAIT
+    MOVE, SHOOT, CONVERT, WAIT
 }
 
 class Action {
-    Command command;
-    String target;
+    private final int unitId;
+    private final Command command;
+    private final String target;
 
-    public Action(String commandString, String target) {
+    public Action(int unitId, String commandString, String target) {
+        this.unitId = unitId;
         this.command = Command.valueOf(commandString);
         this.target = target;
     }
@@ -25,6 +27,10 @@ class Action {
         return target;
     }
 
+    public int getUnitId() {
+        return unitId;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -32,20 +38,22 @@ class Action {
 
         Action action = (Action) o;
 
+        if (unitId != action.unitId) return false;
         if (command != action.command) return false;
         return target != null ? target.equals(action.target) : action.target == null;
     }
 
     @Override
     public int hashCode() {
-        int result = command != null ? command.hashCode() : 0;
+        int result = unitId;
+        result = 31 * result + (command != null ? command.hashCode() : 0);
         result = 31 * result + (target != null ? target.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return command + " " + target;
+        return unitId + " " + command + " " + target;
     }
 }
 
@@ -59,20 +67,27 @@ public class Agent1 {
         Scanner scanner = new Scanner(System.in);
 
         while (true) {
-            int currentUnitId = scanner.nextInt();
-            scanner.nextLine();
-
             int numberOfActions = scanner.nextInt();
             scanner.nextLine();
 
             List<Action> validActions = new ArrayList<>();
+            Action chosenAction = null;
             for (int i = 0; i < numberOfActions; i++) {
                 String[] actionString = scanner.nextLine().split(" ");
-                validActions.add(new Action(actionString[0], actionString[1]));
+                Action newAction = new Action(
+                        Integer.parseInt(actionString[0]),
+                        actionString[1],
+                        actionString[2]);
+                if (newAction.getCommand().equals(Command.CONVERT)) {
+                    chosenAction = newAction;
+                }
+                validActions.add(newAction);
             }
 
             int randomMoveIndex = random.nextInt(numberOfActions);
-            Action chosenAction = validActions.get(randomMoveIndex);
+            if (chosenAction == null) {
+                chosenAction = validActions.get(randomMoveIndex);
+            }
 //            Action chosenAction = validActions.size() > 1 ? validActions.get(1) : validActions.get(0);
 //            Action chosenAction = validActions.get(counter++ % (validActions.size()));
             System.out.println(chosenAction);

@@ -38,6 +38,10 @@ public abstract class Unit {
         return playerId;
     }
 
+    public void setPlayerId(int playerId) {
+        this.playerId = playerId;
+    }
+
     public boolean isInGame() {
         return isInGame;
     }

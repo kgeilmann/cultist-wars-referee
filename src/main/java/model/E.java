@@ -13,6 +13,7 @@ public class E {
     public static final String WAIT = "WAIT";
     public static final String MOVE = "MOVE";
     public static final String SHOOT = "SHOOT";
+    public static final String CONVERT = "CONVERT";
     public static final String UP = "UP";
     public static final String RIGHT = "RIGHT";
     public static final String DOWN = "DOWN";

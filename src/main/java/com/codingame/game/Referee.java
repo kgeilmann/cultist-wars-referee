@@ -16,7 +16,7 @@ import java.util.List;
 // TODO: make stub
 
 public class Referee extends AbstractReferee {
-    public static int MAX_ROUNDS = 200;
+    public static int MAX_ROUNDS = 400;
     private static int FRAME_DURATION = 400;
 
     @Inject
@@ -34,7 +34,7 @@ public class Referee extends AbstractReferee {
         gameManager.setTurnMaxTime(50);
 
         board = new Board();
-        board.initExtraObstacles();
+//        board.initExtraObstacles();
 
         viewController = new ViewController(graphicEntityModule, gameManager, board);
         viewController.createTilesView();
@@ -42,19 +42,11 @@ public class Referee extends AbstractReferee {
         viewController.createFxView();
     }
 
-
     @Override
     public void gameTurn(int turn) {
-        // TODO: change game turn structure - make move and action phases
-        // Find current unit still in game
-        Unit currentUnit = board.getNextUnit();
-        while (!currentUnit.isInGame()) {
-            currentUnit = board.getNextUnit();
-        }
-        Player player = gameManager.getPlayer(currentUnit.getPlayerId());
-
-        List<Action> validActions = board.getValidActions(currentUnit);
-        sendInputs(player, currentUnit.getUnitId(), validActions);
+        Player player = gameManager.getPlayer(turn % 2);
+        List<Action> validActions = board.getValidActions(player.getIndex());
+        sendInputs(player, validActions);
         player.execute();
 
         try {
@@ -66,6 +58,8 @@ public class Referee extends AbstractReferee {
                 player.deactivate(String.format("$%d illegal move!", player.getIndex()));
                 gameManager.endGame();
             }
+
+            Unit currentUnit = board.getUnit(action.getUnitId());
 
             Tile affectedTile = board.update(currentUnit, action);
 
@@ -99,9 +93,7 @@ public class Referee extends AbstractReferee {
         // TODO: send init input
     }
 
-    private void sendInputs(Player player, int currentUnitId, List<Action> validActions) {
-        player.sendInputLine(String.valueOf(currentUnitId));
-
+    private void sendInputs(Player player, List<Action> validActions) {
         player.sendInputLine(String.valueOf(validActions.size()));
         for (Action validAction : validActions) {
             player.sendInputLine(validAction.toString());

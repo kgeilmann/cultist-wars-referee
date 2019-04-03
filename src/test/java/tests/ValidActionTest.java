@@ -13,6 +13,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class ValidActionTest {
+    // TODO: fix tests
+
     Board board;
 
     @Before
@@ -24,13 +26,13 @@ public class ValidActionTest {
     public void ifSurroundedByEmptyTiles_includeMoveToAllDirections() {
         Unit currentUnit = board.getUnit(0);
 
-        List<Action> validActions = board.getValidActions(currentUnit);
+        List<Action> validActions = board.getValidActions(0);
 
-        assertTrue(validActions.contains(new Action("MOVE", "UP")));
-        assertTrue(validActions.contains(new Action("MOVE", "RIGHT")));
-        assertTrue(validActions.contains(new Action("MOVE", "DOWN")));
-        assertTrue(validActions.contains(new Action("MOVE", "LEFT")));
-        assertTrue(validActions.contains(new Action("WAIT", "0")));
+        assertTrue(validActions.contains(new Action(0,"MOVE", "UP")));
+        assertTrue(validActions.contains(new Action(0, "MOVE", "RIGHT")));
+        assertTrue(validActions.contains(new Action(0,"MOVE", "DOWN")));
+        assertTrue(validActions.contains(new Action(0,"MOVE", "LEFT")));
+        assertTrue(validActions.contains(new Action(0,"WAIT", "0")));
     }
 
     @Test
@@ -38,13 +40,13 @@ public class ValidActionTest {
         Unit currentUnit = board.getUnit(1);
         currentUnit.setTile(board.getTile(Board.WIDTH - 1, currentUnit.getRow()));
 
-        List<Action> validActions = board.getValidActions(currentUnit);
+        List<Action> validActions = board.getValidActions(1);
 
-        assertTrue(validActions.contains(new Action("MOVE", "UP")));
-        assertFalse(validActions.contains(new Action("MOVE", "RIGHT")));
-        assertTrue(validActions.contains(new Action("MOVE", "DOWN")));
-        assertTrue(validActions.contains(new Action("MOVE", "LEFT")));
-        assertTrue(validActions.contains(new Action("WAIT", "0")));
+        assertTrue(validActions.contains(new Action(1,"MOVE", "UP")));
+        assertFalse(validActions.contains(new Action(1,"MOVE", "RIGHT")));
+        assertTrue(validActions.contains(new Action(1,"MOVE", "DOWN")));
+        assertTrue(validActions.contains(new Action(1,"MOVE", "LEFT")));
+        assertTrue(validActions.contains(new Action(1,"WAIT", "0")));
     }
 
     @Test
@@ -52,13 +54,13 @@ public class ValidActionTest {
         Unit currentUnit = board.getUnit(2);
         currentUnit.setTile(board.getTile(7, 2));
 
-        List<Action> validActions = board.getValidActions(currentUnit);
+        List<Action> validActions = board.getValidActions(0);
 
-        assertTrue(validActions.contains(new Action("MOVE", "UP")));
-        assertTrue(validActions.contains(new Action("MOVE", "RIGHT")));
-        assertFalse(validActions.contains(new Action("MOVE", "DOWN")));
-        assertTrue(validActions.contains(new Action("MOVE", "LEFT")));
-        assertTrue(validActions.contains(new Action("WAIT", "0")));
+        assertTrue(validActions.contains(new Action(2,"MOVE", "UP")));
+        assertTrue(validActions.contains(new Action(2,"MOVE", "RIGHT")));
+        assertFalse(validActions.contains(new Action(2,"MOVE", "DOWN")));
+        assertTrue(validActions.contains(new Action(2,"MOVE", "LEFT")));
+        assertTrue(validActions.contains(new Action(2,"WAIT", "0")));
     }
 
     @Test
@@ -66,13 +68,13 @@ public class ValidActionTest {
         Unit currentUnit = board.getUnit(5);
         currentUnit.setTile(board.getTile(Board.WIDTH - 1, Board.HEIGHT - 1));
 
-        List<Action> validActions = board.getValidActions(currentUnit);
+        List<Action> validActions = board.getValidActions(1);
 
-        assertTrue(validActions.contains(new Action("MOVE", "UP")));
-        assertFalse(validActions.contains(new Action("MOVE", "RIGHT")));
-        assertFalse(validActions.contains(new Action("MOVE", "DOWN")));
-        assertTrue(validActions.contains(new Action("MOVE", "LEFT")));
-        assertTrue(validActions.contains(new Action("WAIT", "0")));
+        assertTrue(validActions.contains(new Action(5,"MOVE", "UP")));
+        assertFalse(validActions.contains(new Action(5,"MOVE", "RIGHT")));
+        assertFalse(validActions.contains(new Action(5,"MOVE", "DOWN")));
+        assertTrue(validActions.contains(new Action(5,"MOVE", "LEFT")));
+        assertTrue(validActions.contains(new Action(5,"WAIT", "0")));
     }
 
     @Test
@@ -80,13 +82,13 @@ public class ValidActionTest {
         Unit currentUnit = board.getUnit(0);
         currentUnit.setTile(board.getTile(currentUnit.getCol(), 2));
 
-        List<Action> validActions = board.getValidActions(currentUnit);
+        List<Action> validActions = board.getValidActions(0);
 
-        assertTrue(validActions.contains(new Action("MOVE", "UP")));
-        assertTrue(validActions.contains(new Action("MOVE", "RIGHT")));
-        assertFalse(validActions.contains(new Action("MOVE", "DOWN")));
-        assertTrue(validActions.contains(new Action("MOVE", "LEFT")));
-        assertTrue(validActions.contains(new Action("WAIT", "0")));
+        assertTrue(validActions.contains(new Action(0,"MOVE", "UP")));
+        assertTrue(validActions.contains(new Action(0,"MOVE", "RIGHT")));
+        assertFalse(validActions.contains(new Action(0,"MOVE", "DOWN")));
+        assertTrue(validActions.contains(new Action(0,"MOVE", "LEFT")));
+        assertTrue(validActions.contains(new Action(0,"WAIT", "0")));
     }
 
     @Test
@@ -94,13 +96,13 @@ public class ValidActionTest {
         Unit currentUnit = board.getUnit(1);
         currentUnit.setTile(board.getTile(currentUnit.getCol(), 4));
 
-        List<Action> validActions = board.getValidActions(currentUnit);
+        List<Action> validActions = board.getValidActions(1);
 
-        assertFalse(validActions.contains(new Action("MOVE", "UP")));
-        assertTrue(validActions.contains(new Action("MOVE", "RIGHT")));
-        assertFalse(validActions.contains(new Action("MOVE", "DOWN")));
-        assertTrue(validActions.contains(new Action("MOVE", "LEFT")));
-        assertTrue(validActions.contains(new Action("WAIT", "0")));
+        assertFalse(validActions.contains(new Action(1,"MOVE", "UP")));
+        assertTrue(validActions.contains(new Action(1,"MOVE", "RIGHT")));
+        assertFalse(validActions.contains(new Action(1,"MOVE", "DOWN")));
+        assertTrue(validActions.contains(new Action(1,"MOVE", "LEFT")));
+        assertTrue(validActions.contains(new Action(1,"WAIT", "0")));
     }
 
     @Test
@@ -114,13 +116,13 @@ public class ValidActionTest {
         currentUnit = board.getUnit(0);
         currentUnit.setTile(board.getTile(0, 0));
 
-        List<Action> validActions = board.getValidActions(currentUnit);
+        List<Action> validActions = board.getValidActions(1);
 
-        assertFalse(validActions.contains(new Action("MOVE", "UP")));
-        assertFalse(validActions.contains(new Action("MOVE", "RIGHT")));
-        assertFalse(validActions.contains(new Action("MOVE", "DOWN")));
-        assertFalse(validActions.contains(new Action("MOVE", "LEFT")));
-        assertTrue(validActions.contains(new Action("WAIT", "0")));
+        assertFalse(validActions.contains(new Action(2,"MOVE", "UP")));
+        assertFalse(validActions.contains(new Action(2,"MOVE", "RIGHT")));
+        assertFalse(validActions.contains(new Action(2, "MOVE", "DOWN")));
+        assertFalse(validActions.contains(new Action(2,"MOVE", "LEFT")));
+        assertTrue(validActions.contains(new Action(2,"WAIT", "0")));
     }
 
     @Test
@@ -135,22 +137,22 @@ public class ValidActionTest {
         currentUnit = board.getUnit(0);
         currentUnit.setTile(board.getTile(0, 0));
 
-        List<Action> validActions = board.getValidActions(currentUnit);
+        List<Action> validActions = board.getValidActions(1);
 
-        assertFalse(validActions.contains(new Action("MOVE", "UP")));
-        assertFalse(validActions.contains(new Action("MOVE", "RIGHT")));
-        assertTrue(validActions.contains(new Action("MOVE", "DOWN")));
-        assertFalse(validActions.contains(new Action("MOVE", "LEFT")));
-        assertTrue(validActions.contains(new Action("WAIT", "0")));
+        assertFalse(validActions.contains(new Action(2,"MOVE", "UP")));
+        assertFalse(validActions.contains(new Action(2,"MOVE", "RIGHT")));
+        assertTrue(validActions.contains(new Action(2,"MOVE", "DOWN")));
+        assertFalse(validActions.contains(new Action(2,"MOVE", "LEFT")));
+        assertTrue(validActions.contains(new Action(2,"WAIT", "0")));
     }
 
     @Test
     public void ifNoEnemyInRange_thenShootIsNotPossible() {
         Unit currentUnit = board.getUnit(0);
 
-        List<Action> validActions = board.getValidActions(currentUnit);
+        List<Action> validActions = board.getValidActions(0);
 
-        assertFalse(validActions.contains(new Action(E.SHOOT, "1")));
+        assertFalse(validActions.contains(new Action(0, E.SHOOT, "1")));
     }
 
     @Test
@@ -158,11 +160,11 @@ public class ValidActionTest {
         Unit currentUnit = board.getUnit(0);
         currentUnit.setTile(board.getTile(6, 3));
 
-        List<Action> validActions = board.getValidActions(currentUnit);
+        List<Action> validActions = board.getValidActions(0);
 
-        assertTrue(validActions.contains(new Action(E.SHOOT, "1")));
-        assertTrue(validActions.contains(new Action(E.SHOOT, "3")));
-        assertTrue(validActions.contains(new Action(E.SHOOT, "5")));
+        assertTrue(validActions.contains(new Action(0, E.SHOOT, "1")));
+        assertTrue(validActions.contains(new Action(0, E.SHOOT, "3")));
+        assertTrue(validActions.contains(new Action(0, E.SHOOT, "5")));
     }
 
     @Test
@@ -172,10 +174,10 @@ public class ValidActionTest {
         Unit targetUnit = board.getUnit(3);
         targetUnit.takeDamage(10.0);
 
-        List<Action> validActions = board.getValidActions(currentUnit);
+        List<Action> validActions = board.getValidActions(0);
 
-        assertTrue(validActions.contains(new Action(E.SHOOT, "1")));
-        assertFalse(validActions.contains(new Action(E.SHOOT, "3")));
-        assertTrue(validActions.contains(new Action(E.SHOOT, "5")));
+        assertTrue(validActions.contains(new Action(0, E.SHOOT, "1")));
+        assertFalse(validActions.contains(new Action(0, E.SHOOT, "3")));
+        assertTrue(validActions.contains(new Action(0, E.SHOOT, "5")));
     }
 }

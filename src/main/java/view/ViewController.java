@@ -26,6 +26,7 @@ public class ViewController {
     private MultiplayerGameManager<Player> gameManager;
     private Board board;
     private List<Group> unitSpriteGroups;
+    private List<Sprite> unitSprites;
     private Sprite bulletSprite;
     private SpriteAnimation cutAnimation;
 
@@ -110,22 +111,25 @@ public class ViewController {
 
     public void createUnitsView() {
         unitSpriteGroups = new ArrayList<>();
+        unitSprites = new ArrayList<>();
 
         for (Unit unit : board.getUnits()) {
             if (unit.getPlayerId() == E.PLAYER_ONE_ID) {
-                if (unit.getClass().equals(Priest.class)) {
+                if (unit.getClass().equals(CultLeader.class)) {
                     createUnitView("green_mage_1.png", unit);
                 } else {
                     createUnitView("green_gunman_1.png", unit);
                 }
             } else {
-                if (unit.getClass().equals(Priest.class)) {
+                if (unit.getClass().equals(CultLeader.class)) {
                     createUnitView("red_mage_1.png", unit);
                 } else {
                     createUnitView("red_gunman_1.png", unit);
                 }
             }
         }
+
+        // TODO: add health bar
     }
 
     public void createFxView() {
@@ -142,13 +146,16 @@ public class ViewController {
                 .setY(BOARD_OFFSET_Y)
                 .setZIndex(BULLET_Z)
                 .setVisible(false);
+
+        // TODO: add unit death animation
+        // TODO: add convert animation
     }
 
     private void createUnitView(String sprite, Unit unit) {
         Sprite unitSprite = graphicEntityModule.createSprite()
                 .setImage(sprite)
                 .setZIndex(UNIT_Z);
-
+        unitSprites.add(unitSprite);
         Sprite shadowSprite = graphicEntityModule.createSprite()
                 .setImage("shadow.png")
                 .setZIndex(SHADOW_Z)
@@ -179,7 +186,16 @@ public class ViewController {
                 }
                 bulletAnimation(currentUnit.getTile(), affectedTile);
                 unitHitAnimation(affectedTile);
-
+                break;
+            case CONVERT:
+                int affectedUnitId = Integer.parseInt(action.getTarget());
+                Sprite affectedSprite = unitSprites.get(affectedUnitId);
+                if (currentUnit.getPlayerId() == E.PLAYER_ONE_ID) {
+                    affectedSprite.setImage("green_gunman_1.png");
+                } else {
+                    affectedSprite.setImage("red_gunman_1.png");
+                }
+                break;
         }
 
         // TODO: create animations

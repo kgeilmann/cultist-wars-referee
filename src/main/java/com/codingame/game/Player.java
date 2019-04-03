@@ -11,6 +11,6 @@ public class Player extends AbstractMultiplayerPlayer {
 
     public Action getAction() throws TimeoutException, IllegalArgumentException {
         String[] output = getOutputs().get(0).split(" ");
-        return new Action(output[0], output[1]);
+        return new Action(Integer.parseInt(output[0]), output[1], output[2]);
     }
 }
