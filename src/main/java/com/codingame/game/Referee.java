@@ -34,7 +34,7 @@ public class Referee extends AbstractReferee {
         gameManager.setTurnMaxTime(50);
 
         board = new Board();
-//        board.initExtraObstacles();
+        board.initExtraObstacles();
 
         viewController = new ViewController(graphicEntityModule, gameManager, board);
         viewController.createTilesView();
@@ -44,7 +44,13 @@ public class Referee extends AbstractReferee {
 
     @Override
     public void gameTurn(int turn) {
+        // TODO: change game turn structure yet again
         Player player = gameManager.getPlayer(turn % 2);
+
+        if (turn == 0 || turn == 1) {
+            sendInitInput(player);
+        }
+
         List<Action> validActions = board.getValidActions(player.getIndex());
         sendInputs(player, validActions);
         player.execute();

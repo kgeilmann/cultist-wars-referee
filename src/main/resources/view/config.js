@@ -6,6 +6,6 @@ export const modules = [
 ];
 
 export const playerColors = [
-  '#6ac371', // mantis green,
-  '#ff1d5c' // radical red
+  '#CF3232', // red,
+  '#00A0AB' // teal
 ]

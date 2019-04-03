@@ -116,15 +116,15 @@ public class ViewController {
         for (Unit unit : board.getUnits()) {
             if (unit.getPlayerId() == E.PLAYER_ONE_ID) {
                 if (unit.getClass().equals(CultLeader.class)) {
-                    createUnitView("green_mage_1.png", unit);
+                    createUnitView("red_cultleader.png", unit);
                 } else {
-                    createUnitView("green_gunman_1.png", unit);
+                    createUnitView("red_cultist.png", unit);
                 }
             } else {
                 if (unit.getClass().equals(CultLeader.class)) {
-                    createUnitView("red_mage_1.png", unit);
+                    createUnitView("blue_cultleader.png", unit);
                 } else {
-                    createUnitView("red_gunman_1.png", unit);
+                    createUnitView("blue_cultist.png", unit);
                 }
             }
         }
@@ -159,7 +159,7 @@ public class ViewController {
         Sprite shadowSprite = graphicEntityModule.createSprite()
                 .setImage("shadow.png")
                 .setZIndex(SHADOW_Z)
-                .setY(20);
+                .setY(10);
         Group unitGroup = graphicEntityModule.createGroup(unitSprite, shadowSprite);
         placeUnitViewOnTile(unitGroup, unit.getCol(), unit.getRow());
         unitSpriteGroups.add(unitGroup);
@@ -191,9 +191,9 @@ public class ViewController {
                 int affectedUnitId = Integer.parseInt(action.getTarget());
                 Sprite affectedSprite = unitSprites.get(affectedUnitId);
                 if (currentUnit.getPlayerId() == E.PLAYER_ONE_ID) {
-                    affectedSprite.setImage("green_gunman_1.png");
+                    affectedSprite.setImage("red_cultist.png");
                 } else {
-                    affectedSprite.setImage("red_gunman_1.png");
+                    affectedSprite.setImage("blue_cultist.png");
                 }
                 break;
         }

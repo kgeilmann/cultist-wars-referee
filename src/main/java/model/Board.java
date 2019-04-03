@@ -7,6 +7,7 @@ public class Board {
     public static int WIDTH = 12;
     public static int HEIGHT = 7;
     public static int NUMBER_OF_GUNMAN_PER_PLAYER = 3;
+    public static int NUMBER_OF_UNITS_PER_PLAYER = 4;
     private static int[] INITIAL_COLS = new int[]{1, 0, 1, 10, 11, 10};
     private static int[] INITIAL_ROWS = new int[]{1, 3, 5, 1, 3, 5};
     private static int[] INITIAL_PRIEST_COLS = new int[]{2, Board.WIDTH - 3};
@@ -19,14 +20,14 @@ public class Board {
 
     private Tile[][] tiles;
     private List<Unit> allUnits;
-    private int currentUnit;
+    private int playerOneUnitNum;
+    private int playerTwoUnitNum;
 
 
     public Board() {
         initTiles();
         initGunmen();
         initPriests();
-        currentUnit = 0;
     }
 
     private Tile[][] initTiles() {
@@ -43,6 +44,8 @@ public class Board {
 
     private void initGunmen() {
         allUnits = new ArrayList<>();
+        playerOneUnitNum = NUMBER_OF_UNITS_PER_PLAYER;
+        playerTwoUnitNum = NUMBER_OF_UNITS_PER_PLAYER;
 
         int unitId = 0;
         for (int i = 0; i < NUMBER_OF_GUNMAN_PER_PLAYER; i++) {
@@ -98,11 +101,6 @@ public class Board {
 
     public Tile getTile(int col, int row) {
         return tiles[col][row];
-    }
-
-    public Unit getNextUnit() {
-        if (currentUnit == E.TOTAL_UNIT_NUM) currentUnit = 0;
-        return allUnits.get(currentUnit++);
     }
 
     public List<Action> getValidActions(int playerId) {
