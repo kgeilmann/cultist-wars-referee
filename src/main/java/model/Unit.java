@@ -1,8 +1,8 @@
 package model;
 
 public abstract class Unit {
-    protected  int id;
-    protected double hp;
+    protected int id;
+    protected int hp;
     protected Tile tile;
     protected int playerId;
     protected boolean isInGame;
@@ -10,7 +10,7 @@ public abstract class Unit {
     public Unit(int id, Tile tile, int playerId) {
         this.id = id;
         this.playerId = playerId;
-        hp = 10.0;
+        hp = 10;
         isInGame = true;
         tile.setUnit(this);
         this.tile = tile;
@@ -50,11 +50,11 @@ public abstract class Unit {
         return id;
     }
 
-    public double getHp() {
+    public int getHp() {
         return hp;
     }
 
-    public void takeDamage(double damage) {
+    public void takeDamage(int damage) {
         hp = Math.max(0, hp - damage);
         if (hp == 0) {
             isInGame = false;

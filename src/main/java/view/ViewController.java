@@ -27,6 +27,7 @@ public class ViewController {
     private Board board;
     private List<Group> unitSpriteGroups;
     private List<Sprite> unitSprites;
+    private List<HealthBar> healthBars;
     private Sprite bulletSprite;
     private SpriteAnimation cutAnimation;
     private SpriteAnimation convertAnimation;
@@ -44,6 +45,9 @@ public class ViewController {
 
     public void createTilesView() {
         // TODO: switch to spritesheet
+        // TODO: switch to using FX module
+        // TODO: add hud
+        // TODO: add end game screen
 
         tileGroup = graphicEntityModule.createBufferedGroup()
                 .setX(BOARD_OFFSET_X - ENTITY_SIZE)
@@ -115,9 +119,10 @@ public class ViewController {
     public void createUnitsView() {
         unitSpriteGroups = new ArrayList<>();
         unitSprites = new ArrayList<>();
+        healthBars = new ArrayList<>();
+
 
         for (Unit unit : board.getUnits()) {
-            // TODO: create laymen views
             switch (unit.getPlayerId()) {
                 case E.PLAYER_ONE_ID:
                     createUnitView("red_cultleader.png", unit);
@@ -130,8 +135,6 @@ public class ViewController {
             }
         }
 
-
-        // TODO: add health bar
     }
 
     public void createFxView() {
@@ -149,8 +152,6 @@ public class ViewController {
                 .setZIndex(FX_Z)
                 .setVisible(false);
 
-        // TODO: add unit death animation
-        // TODO: add convert animation
         convertAnimation = graphicEntityModule.createSpriteAnimation()
                 .setImages("convert_1.png", "convert_2.png")
                 .setX(BOARD_OFFSET_X)
@@ -177,7 +178,37 @@ public class ViewController {
                 .setImage("shadow.png")
                 .setZIndex(SHADOW_Z)
                 .setY(10);
-        Group unitGroup = graphicEntityModule.createGroup(unitSprite, shadowSprite);
+        Rectangle rectangleGreen = graphicEntityModule.createRectangle()
+                .setHeight(5)
+                .setWidth(HealthBar.HEALTH_BAR_LENGTH)
+                .setLineWidth(0)
+                .setFillColor(0x00FF00)
+                .setX(20)
+                .setZIndex(1001)
+                .setY(90);
+        Rectangle rectangleRed = graphicEntityModule.createRectangle()
+                .setHeight(5)
+                .setWidth(HealthBar.HEALTH_BAR_LENGTH)
+                .setLineWidth(0)
+                .setFillColor(0xFF0000)
+                .setX(20)
+                .setZIndex(1000)
+                .setY(90);
+        healthBars.add(new HealthBar(rectangleGreen, rectangleRed));
+        Text unitIdText = graphicEntityModule.createText(Integer.toString(unit.getUnitId()))
+                .setFillColor(16777215)
+                .setFontFamily("Impact")
+                .setFontWeight(Text.FontWeight.LIGHTER)
+                .setScale(0.8)
+                .setX(5)
+                .setY(5);
+
+        Group unitGroup = graphicEntityModule.createGroup(
+                unitSprite,
+                rectangleGreen,
+                rectangleRed,
+                shadowSprite,
+                unitIdText);
         placeUnitViewOnTile(unitGroup, unit.getCol(), unit.getRow());
         unitSpriteGroups.add(unitGroup);
     }
@@ -193,8 +224,6 @@ public class ViewController {
                         unitSpriteGroups.get(unitId),
                         currentUnit.getCol(),
                         currentUnit.getRow());
-
-                // TODO: turn when moving opposite direction
                 break;
             case SHOOT:
                 Unit hitUnit = affectedTile.getUnit();
@@ -204,6 +233,7 @@ public class ViewController {
                 }
                 bulletAnimation(currentUnit.getTile(), affectedTile);
                 unitHitAnimation(affectedTile);
+                updateHealthBar(affectedTile.getUnit());
                 break;
             case CONVERT:
                 int affectedUnitId = Integer.parseInt(action.getTarget());
@@ -216,8 +246,11 @@ public class ViewController {
                 playFx(affectedTile, convertAnimation);
                 break;
         }
+    }
 
-        // TODO: create animations
+    private void updateHealthBar(Unit unit) {
+        if (unit == null) return;
+        healthBars.get(unit.getUnitId()).update(unit.getHp());
     }
 
     private void playFx(Tile affectedTile, SpriteAnimation animation) {

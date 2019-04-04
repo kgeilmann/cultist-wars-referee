@@ -132,7 +132,7 @@ public class ValidActionTest {
 
         currentUnit = board.getUnit(4);
         currentUnit.setTile(board.getTile(0, 1));
-        currentUnit.takeDamage(10.0);
+        currentUnit.takeDamage(10);
 
         currentUnit = board.getUnit(0);
         currentUnit.setTile(board.getTile(0, 0));
@@ -172,7 +172,7 @@ public class ValidActionTest {
         Unit currentUnit = board.getUnit(0);
         currentUnit.setTile(board.getTile(6, 3));
         Unit targetUnit = board.getUnit(3);
-        targetUnit.takeDamage(10.0);
+        targetUnit.takeDamage(10);
 
         List<Action> validActions = board.getValidActions(0);
 

@@ -41,7 +41,10 @@ public class Referee extends AbstractReferee {
 
     @Override
     public void gameTurn(int turn) {
-        // TODO: handle laymen movement
+        if (gameManager.isGameEnd()) {
+            onEnd();
+        }
+
         int playerId = turn % 2;
 
         Player player = gameManager.getPlayer(playerId);
@@ -84,19 +87,35 @@ public class Referee extends AbstractReferee {
     }
 
     private void updateGameSummary(Action action, Tile affectedTile, Unit currentUnit) {
-        // TODO: update game summary with rest of actions
-        if (action.getCommand().equals(Action.Command.SHOOT)) {
-            Unit affectedUnit = affectedTile.getUnit();
-            if (affectedUnit != null) {
-                gameManager.addToGameSummary("Unit " + currentUnit.getUnitId() +
-                        " hit unit "
-                        + affectedUnit.getUnitId()
-                        + ". New hp: " + affectedUnit.getHp());
-            } else {
-                gameManager.addToGameSummary("Unit " + currentUnit.getUnitId() +
-                        " hit obstacle.");
-            }
+        switch (action.getCommand()) {
+            case SHOOT:
+                Unit affectedUnit = affectedTile.getUnit();
+                if (affectedUnit != null) {
+                    gameManager.addToGameSummary("Unit " + currentUnit.getUnitId() +
+                            " hit unit "
+                            + affectedUnit.getUnitId()
+                            + ". New hp: " + affectedUnit.getHp());
+                } else {
+                    gameManager.addToGameSummary("Unit " + currentUnit.getUnitId() +
+                            " hit obstacle");
+                }
+                break;
+            case MOVE:
+                Unit unit = board.getUnit(action.getUnitId());
+                gameManager.addToGameSummary("Unit " + unit.getUnitId()
+                        + " moved to row " + unit.getCol()
+                        + " col " + unit.getRow());
+                break;
+            case CONVERT:
+                gameManager.addToGameSummary("Unit " + action.getUnitId()
+                        + " converted unit " + action.getTarget());
+                break;
+            case WAIT:
+                gameManager.addToGameSummary("Unit " + action.getUnitId()
+                        + " is waiting");
+                break;
         }
+
     }
 
     private void sendInitInput(Player player) {
@@ -123,4 +142,8 @@ public class Referee extends AbstractReferee {
         }
     }
 
+    @Override
+    public void onEnd() {
+        // TODO: declare winner at end
+    }
 }

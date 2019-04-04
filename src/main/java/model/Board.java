@@ -251,7 +251,7 @@ public class Board {
         Tile hitTile = checkBulletPath(startTile, targetTile);
 
         if (hitTile.getUnit() != null) {
-            double damage = E.MAX_DAMAGE - distance * E.DAMAGE_REDUCTION_COEFF;
+            int damage = E.MAX_DAMAGE - distance * E.DAMAGE_REDUCTION_COEFF;
             hitTile.getUnit().takeDamage(damage);
         }
         return hitTile;
