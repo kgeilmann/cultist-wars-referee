@@ -56,8 +56,6 @@ public class Referee extends AbstractReferee {
 
         try {
             Action action = player.getAction();
-            // TODO: update game summary
-
             // Check validity of the player output and compute the new game state
             if (!validActions.contains(action)) {
                 player.deactivate(String.format("$%d illegal move!", player.getIndex()));
@@ -68,22 +66,11 @@ public class Referee extends AbstractReferee {
 
             Tile affectedTile = board.update(currentUnit, action);
 
-            if (action.getCommand().equals(Action.Command.SHOOT)) {
-                Unit affectedUnit = affectedTile.getUnit();
-                if (affectedUnit != null) {
-                    gameManager.addToGameSummary("Unit " + currentUnit.getUnitId() +
-                            " hit unit "
-                            + affectedUnit.getUnitId()
-                            + ". New hp: " + affectedUnit.getHp());
-                } else {
-                    gameManager.addToGameSummary("Unit " + currentUnit.getUnitId() +
-                            " hit obstacle.");
-                }
-
-            }
+            updateGameSummary(action, affectedTile, currentUnit);
 
             viewController.updateView(currentUnit, action, affectedTile);
-            moveNeutralUnits();
+
+            moveNeutralUnit();
 
         } catch (TimeoutException e) {
             player.deactivate(String.format("$%d timeout!", player.getIndex()));
@@ -94,6 +81,22 @@ public class Referee extends AbstractReferee {
             gameManager.endGame();
         }
 
+    }
+
+    private void updateGameSummary(Action action, Tile affectedTile, Unit currentUnit) {
+        // TODO: update game summary with rest of actions
+        if (action.getCommand().equals(Action.Command.SHOOT)) {
+            Unit affectedUnit = affectedTile.getUnit();
+            if (affectedUnit != null) {
+                gameManager.addToGameSummary("Unit " + currentUnit.getUnitId() +
+                        " hit unit "
+                        + affectedUnit.getUnitId()
+                        + ". New hp: " + affectedUnit.getHp());
+            } else {
+                gameManager.addToGameSummary("Unit " + currentUnit.getUnitId() +
+                        " hit obstacle.");
+            }
+        }
     }
 
     private void sendInitInput(Player player) {
@@ -107,7 +110,7 @@ public class Referee extends AbstractReferee {
         }
     }
 
-    private void moveNeutralUnits() {
+    private void moveNeutralUnit() {
         List<Unit> neutralUnits = board.getNeutralUnits();
         if (!neutralUnits.isEmpty()) {
             Unit neutralUnit = neutralUnits.get(E.random.nextInt(neutralUnits.size()));
