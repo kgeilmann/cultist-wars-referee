@@ -114,20 +114,19 @@ public class ViewController {
         unitSprites = new ArrayList<>();
 
         for (Unit unit : board.getUnits()) {
-            if (unit.getPlayerId() == E.PLAYER_ONE_ID) {
-                if (unit.getClass().equals(CultLeader.class)) {
+            // TODO: create laymen views
+            switch (unit.getPlayerId()) {
+                case E.PLAYER_ONE_ID:
                     createUnitView("red_cultleader.png", unit);
-                } else {
-                    createUnitView("red_cultist.png", unit);
-                }
-            } else {
-                if (unit.getClass().equals(CultLeader.class)) {
+                    break;
+                case E.PLAYER_TWO_ID:
                     createUnitView("blue_cultleader.png", unit);
-                } else {
-                    createUnitView("blue_cultist.png", unit);
-                }
+                    break;
+                default:
+                    createUnitView("layman.png", unit);
             }
         }
+
 
         // TODO: add health bar
     }

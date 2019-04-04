@@ -4,13 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Board {
-    public static int WIDTH = 12;
+    public static int WIDTH = 13;
     public static int HEIGHT = 7;
-    public static int NUMBER_OF_GUNMAN_PER_PLAYER = 3;
-    public static int NUMBER_OF_UNITS_PER_PLAYER = 4;
-    private static int[] INITIAL_COLS = new int[]{1, 0, 1, 10, 11, 10};
-    private static int[] INITIAL_ROWS = new int[]{1, 3, 5, 1, 3, 5};
-    private static int[] INITIAL_PRIEST_COLS = new int[]{2, Board.WIDTH - 3};
+    public static int NUMBER_OF_LAYMEN = 16;
+    private static int[] INITIAL_PRIEST_COLS = new int[]{1, Board.WIDTH - 2};
     private static int[] INITIAL_PRIEST_ROWS = new int[]{3, 3};
 
     private static int[] colModifiers = new int[]{0, 1, 0, -1};
@@ -20,14 +17,13 @@ public class Board {
 
     private Tile[][] tiles;
     private List<Unit> allUnits;
-    private int playerOneUnitNum;
-    private int playerTwoUnitNum;
 
 
     public Board() {
+        allUnits = new ArrayList<>();
         initTiles();
-        initGunmen();
-        initPriests();
+        initCultLeaders();
+        initLaymen();
     }
 
     private Tile[][] initTiles() {
@@ -42,53 +38,46 @@ public class Board {
         return tiles;
     }
 
-    private void initGunmen() {
-        allUnits = new ArrayList<>();
-        playerOneUnitNum = NUMBER_OF_UNITS_PER_PLAYER;
-        playerTwoUnitNum = NUMBER_OF_UNITS_PER_PLAYER;
-
-        int unitId = 0;
-        for (int i = 0; i < NUMBER_OF_GUNMAN_PER_PLAYER; i++) {
-            Tile tile = tiles[INITIAL_COLS[i]][INITIAL_ROWS[i]];
-            Cultist cultistPlayerOne = new Cultist(
-                    unitId++,
-                    tile,
-                    E.PLAYER_ONE_ID);
-            allUnits.add(cultistPlayerOne);
-
-            tile = tiles[INITIAL_COLS[i + NUMBER_OF_GUNMAN_PER_PLAYER]]
-                    [INITIAL_ROWS[i + NUMBER_OF_GUNMAN_PER_PLAYER]];
-            Cultist cultistPlayerTwo = new Cultist(
-                    unitId++,
-                    tile,
-                    E.PLAYER_TWO_ID);
-            allUnits.add(cultistPlayerTwo);
-
-        }
-    }
-
-    private void initPriests() {
+    private void initCultLeaders() {
+        // Change cult leader initial positions
         Tile tile = tiles[INITIAL_PRIEST_COLS[0]][INITIAL_PRIEST_ROWS[0]];
         CultLeader cultLeaderPlayerOne = new CultLeader(
-                6,
+                0,
                 tile,
                 E.PLAYER_ONE_ID);
         allUnits.add(cultLeaderPlayerOne);
 
         tile = tiles[INITIAL_PRIEST_COLS[1]][INITIAL_PRIEST_ROWS[1]];
         CultLeader cultLeaderPlayerTwo = new CultLeader(
-                7,
+                1,
                 tile,
                 E.PLAYER_TWO_ID
         );
         allUnits.add(cultLeaderPlayerTwo);
     }
 
+    private void initLaymen() {
+        // TODO: add laymen to the board
+        for (int i = 2; i < NUMBER_OF_LAYMEN; i++) {
+            Tile tile = tiles[E.random.nextInt(WIDTH)][E.random.nextInt(HEIGHT)];
+            while (tile.getUnit() != null) {
+                tile = tiles[E.random.nextInt(WIDTH)][E.random.nextInt(HEIGHT)];
+            }
+            Cultist layman = new Cultist(
+                    i,
+                    tile,
+                    E.PLAYER_NEUTRAL_ID
+            );
+            allUnits.add(layman);
+        }
+    }
+
 
     public void initExtraObstacles() {
-        for (int col = 3; col < 9; col++) {
+        for (int col = 0; col < WIDTH - 1; col++) {
             for (int row = 0; row < Board.HEIGHT; row++) {
-                if (E.random.nextDouble() < OBSTACLE_CHANCE) {
+                if (tiles[col][row].getUnit() == null
+                        && E.random.nextDouble() < OBSTACLE_CHANCE) {
                     tiles[col][row].setType(Tile.Type.OBSTACLE);
                 }
             }
@@ -125,7 +114,8 @@ public class Board {
 
             }
 
-            if (currentUnit.getClass().equals(Cultist.class)) {
+            if (currentUnit.getClass().equals(Cultist.class)
+                    && currentUnit.getPlayerId() != E.PLAYER_NEUTRAL_ID) {
                 for (Unit enemyUnit : allUnits) {
                     if (enemyUnit.getPlayerId() != currentUnit.getPlayerId()
                             && isInRange(currentUnit, enemyUnit)
@@ -137,16 +127,16 @@ public class Board {
                                         String.valueOf(enemyUnit.getUnitId())));
                     }
                 }
-            } else {
+            } else if (currentUnit.getClass().equals(CultLeader.class)) {
                 for (int i = 0; i < 4; i++) {
                     int col = currentUnit.getCol() + colModifiers[i];
                     int row = currentUnit.getRow() + rowModifiers[i];
-                    if (col >= 0 && col < Board.WIDTH && row >=0 && row < Board.HEIGHT) {
+                    if (col >= 0 && col < Board.WIDTH && row >= 0 && row < Board.HEIGHT) {
                         Unit neighborUnit = tiles[col][row].getUnit();
                         if (neighborUnit != null
                                 && neighborUnit.isInGame()
                                 && neighborUnit.getPlayerId() != currentUnit.getPlayerId()
-                                && neighborUnit.getClass().equals(Cultist.class)) {
+                                && !neighborUnit.getClass().equals(CultLeader.class)) {
                             validActions.add(new Action(
                                     currentUnit.getUnitId(),
                                     E.CONVERT,
@@ -208,8 +198,9 @@ public class Board {
     }
 
     private Tile handleConvert(Action action) {
+        int playerId = allUnits.get(action.getUnitId()).getPlayerId();
         Unit affectedUnit = allUnits.get(Integer.parseInt(action.getTarget()));
-        affectedUnit.setPlayerId((affectedUnit.getPlayerId() + 1) % 2);
+        affectedUnit.setPlayerId(playerId);
         return affectedUnit.getTile();
     }
 
@@ -295,5 +286,4 @@ public class Board {
         Tile targetTile = tiles[target.getCol()][target.getRow()];
         return unitTile.distanceFrom(targetTile);
     }
-
 }

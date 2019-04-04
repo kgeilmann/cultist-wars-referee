@@ -44,7 +44,7 @@ public class Referee extends AbstractReferee {
 
     @Override
     public void gameTurn(int turn) {
-        // TODO: change game turn structure yet again
+        // TODO: handle laymen movement
         Player player = gameManager.getPlayer(turn % 2);
 
         if (turn == 0 || turn == 1) {

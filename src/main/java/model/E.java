@@ -8,7 +8,8 @@ public class E {
 
     public static final int PLAYER_ONE_ID = 0;
     public static final int PLAYER_TWO_ID = 1;
-    public static final int TOTAL_UNIT_NUM = 8;
+    public static final int PLAYER_NEUTRAL_ID = 2;
+    public static final int MAX_UNIT_NUM = 16;
 
     public static final String WAIT = "WAIT";
     public static final String MOVE = "MOVE";
