@@ -19,7 +19,7 @@ public class ViewController {
     public static final int SHADOW_Z = -2;
     public static final int SELECTED_SHADOW_Z = -1;
     public static final int UNIT_Z = 0;
-    public static final int BULLET_Z = 100;
+    public static final int FX_Z = 100;
 
     private BufferedGroup tileGroup;
     private GraphicEntityModule graphicEntityModule;
@@ -29,6 +29,8 @@ public class ViewController {
     private List<Sprite> unitSprites;
     private Sprite bulletSprite;
     private SpriteAnimation cutAnimation;
+    private SpriteAnimation convertAnimation;
+    private SpriteAnimation puffAnimation;
 
 
     public ViewController(
@@ -47,7 +49,6 @@ public class ViewController {
                 .setX(BOARD_OFFSET_X - ENTITY_SIZE)
                 .setY(BOARD_OFFSET_Y - ENTITY_SIZE).setZIndex(TILE_Z);
 
-        int obstacleCounter = 0;
         for (int x = 1; x < Board.WIDTH + 1; x++) {
             for (int y = 1; y < Board.HEIGHT + 1; y++) {
                 if (board.getTile(x - 1, y - 1).getType().equals(Tile.Type.OBSTACLE)) {
@@ -107,6 +108,8 @@ public class ViewController {
                     .setX((Board.WIDTH + 1) * ENTITY_SIZE)
                     .setY(y * ENTITY_SIZE));
         }
+
+
     }
 
     public void createUnitsView() {
@@ -136,18 +139,33 @@ public class ViewController {
                 .setImage("bullet.png")
                 .setX(BOARD_OFFSET_X)
                 .setY(BOARD_OFFSET_Y)
-                .setZIndex(BULLET_Z)
+                .setZIndex(FX_Z)
                 .setVisible(false);
 
         cutAnimation = graphicEntityModule.createSpriteAnimation()
                 .setImages("cut_1.png", "cut_2.png")
                 .setX(BOARD_OFFSET_X)
                 .setY(BOARD_OFFSET_Y)
-                .setZIndex(BULLET_Z)
+                .setZIndex(FX_Z)
                 .setVisible(false);
 
         // TODO: add unit death animation
         // TODO: add convert animation
+        convertAnimation = graphicEntityModule.createSpriteAnimation()
+                .setImages("convert_1.png", "convert_2.png")
+                .setX(BOARD_OFFSET_X)
+                .setY(BOARD_OFFSET_Y)
+                .setZIndex(FX_Z)
+                .setVisible(false)
+                .setDuration(400);
+
+        puffAnimation = graphicEntityModule.createSpriteAnimation()
+                .setImages("puff_1.png", "puff_2.png")
+                .setX(BOARD_OFFSET_X)
+                .setY(BOARD_OFFSET_Y)
+                .setZIndex(FX_Z)
+                .setVisible(false)
+                .setDuration(400);
     }
 
     private void createUnitView(String sprite, Unit unit) {
@@ -182,6 +200,7 @@ public class ViewController {
                 Unit hitUnit = affectedTile.getUnit();
                 if (hitUnit != null && !hitUnit.isInGame()) {
                     unitSpriteGroups.get(hitUnit.getUnitId()).setVisible(false);
+                    playFx(affectedTile, puffAnimation);
                 }
                 bulletAnimation(currentUnit.getTile(), affectedTile);
                 unitHitAnimation(affectedTile);
@@ -194,10 +213,22 @@ public class ViewController {
                 } else {
                     affectedSprite.setImage("blue_cultist.png");
                 }
+                playFx(affectedTile, convertAnimation);
                 break;
         }
 
         // TODO: create animations
+    }
+
+    private void playFx(Tile affectedTile, SpriteAnimation animation) {
+        animation
+                .setVisible(true)
+                .setX(BOARD_OFFSET_X + affectedTile.getX() * ENTITY_SIZE)
+                .setY(BOARD_OFFSET_Y + affectedTile.getY() * ENTITY_SIZE)
+                .setPlaying(true);
+        graphicEntityModule.commitEntityState(0.2, animation);
+        animation.setVisible(false);
+        graphicEntityModule.commitEntityState(1, animation);
     }
 
     private void unitHitAnimation(Tile affectedTile) {

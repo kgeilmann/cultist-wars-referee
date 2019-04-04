@@ -57,7 +57,6 @@ public class Board {
     }
 
     private void initLaymen() {
-        // TODO: add laymen to the board
         for (int i = 2; i < NUMBER_OF_LAYMEN; i++) {
             Tile tile = tiles[E.random.nextInt(WIDTH - 2) + 1][E.random.nextInt(HEIGHT)];
             while (tile.getUnit() != null) {
