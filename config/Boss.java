@@ -58,7 +58,7 @@ class Action {
 }
 
 
-public class Agent1 {
+class Player {
     static int counter = 0;
     static Random random = new Random();
 
@@ -101,7 +101,6 @@ public class Agent1 {
 //            Action chosenAction = validActions.size() > 1 ? validActions.get(1) : validActions.get(0);
 //            Action chosenAction = validActions.get(counter++ % (validActions.size()));
             System.out.println(chosenAction);
-//            System.out.println(" B WAIT 0");
         }
     }
 }

@@ -17,6 +17,7 @@ public class Board {
 
     private Tile[][] tiles;
     private List<Unit> allUnits;
+    int[] numberOfUnits;
 
 
     public Board() {
@@ -24,6 +25,7 @@ public class Board {
         initTiles();
         initCultLeaders();
         initLaymen();
+        numberOfUnits = new int[]{1, 1};
     }
 
     private Tile[][] initTiles() {
@@ -220,7 +222,11 @@ public class Board {
     private Tile handleConvert(Action action) {
         int playerId = allUnits.get(action.getUnitId()).getPlayerId();
         Unit affectedUnit = allUnits.get(Integer.parseInt(action.getTarget()));
+        if (affectedUnit.getPlayerId() != E.PLAYER_NEUTRAL_ID) {
+            numberOfUnits[affectedUnit.getPlayerId()]--;
+        }
         affectedUnit.setPlayerId(playerId);
+        numberOfUnits[playerId]++;
         return affectedUnit.getTile();
     }
 
@@ -253,6 +259,11 @@ public class Board {
         if (hitTile.getUnit() != null) {
             int damage = E.MAX_DAMAGE - distance * E.DAMAGE_REDUCTION_COEFF;
             hitTile.getUnit().takeDamage(damage);
+            if (!hitTile.getUnit().isInGame()) {
+                if (hitTile.getUnit().getPlayerId() != E.PLAYER_NEUTRAL_ID) {
+                    numberOfUnits[hitTile.getUnit().getPlayerId()]--;
+                }
+            }
         }
         return hitTile;
     }
@@ -315,5 +326,19 @@ public class Board {
             }
         }
         return neutralUnits;
+    }
+
+    public int getNumberOfUnits(int playerId) {
+        return numberOfUnits[playerId];
+    }
+
+    public List<Unit> getUnitsInGame() {
+        List<Unit> unitsInGame = new ArrayList<>();
+        for (Unit unit : allUnits) {
+            if (unit.isInGame()) {
+                unitsInGame.add(unit);
+            }
+        }
+        return unitsInGame;
     }
 }

@@ -37,14 +37,11 @@ public class Referee extends AbstractReferee {
         viewController.createTilesView();
         viewController.createUnitsView();
         viewController.createFxView();
+        viewController.createHudsView();
     }
 
     @Override
     public void gameTurn(int turn) {
-        if (gameManager.isGameEnd()) {
-            onEnd();
-        }
-
         int playerId = turn % 2;
 
         Player player = gameManager.getPlayer(playerId);
@@ -61,8 +58,10 @@ public class Referee extends AbstractReferee {
             Action action = player.getAction();
             // Check validity of the player output and compute the new game state
             if (!validActions.contains(action)) {
-                player.deactivate(String.format("$%d illegal move!", player.getIndex()));
-                gameManager.endGame();
+                gameManager.addToGameSummary(String.format("$%d illegal move!", player.getIndex()));
+                player.setScore(-1);
+                onEnd();
+                return;
             }
 
             Unit currentUnit = board.getUnit(action.getUnitId());
@@ -76,14 +75,28 @@ public class Referee extends AbstractReferee {
             moveNeutralUnit();
 
         } catch (TimeoutException e) {
-            player.deactivate(String.format("$%d timeout!", player.getIndex()));
+            gameManager.addToGameSummary(String.format("$%d timeout!", player.getIndex()));
+            player.setScore(-1);
             System.err.println(e);
-            gameManager.endGame();
-        } catch (IllegalArgumentException e) {
-            player.deactivate(String.format("$%d illegal move!", player.getIndex()));
-            gameManager.endGame();
+            onEnd();
+            return;
+        } catch (Exception e) {
+            gameManager.addToGameSummary(String.format("$%d invalid output!", player.getIndex()));
+            player.setScore(-1);
+            System.err.println(e);
+            onEnd();
+            return;
         }
-
+        gameManager.addToGameSummary("\nTurn: " + turn);
+        if (gameManager.isGameEnd()
+                || board.getNumberOfUnits(E.PLAYER_ONE_ID) < 1
+                || board.getNumberOfUnits(E.PLAYER_TWO_ID) < 1
+                || turn == MAX_ROUNDS - 1) {
+            gameManager.getPlayer(E.PLAYER_ONE_ID).setScore(board.getNumberOfUnits(E.PLAYER_ONE_ID));
+            gameManager.getPlayer(E.PLAYER_TWO_ID).setScore(board.getNumberOfUnits(E.PLAYER_TWO_ID));
+            onEnd();
+            return;
+        }
     }
 
     private void updateGameSummary(Action action, Tile affectedTile, Unit currentUnit) {
@@ -123,6 +136,24 @@ public class Referee extends AbstractReferee {
     }
 
     private void sendInputs(Player player, List<Action> validActions) {
+        List<Unit> unitsInGame = board.getUnitsInGame();
+        player.sendInputLine(String.valueOf(unitsInGame.size()));
+        for (Unit unit : unitsInGame) {
+            // unit id
+            player.sendInputLine(String.valueOf(
+                    // unit id
+                    unit.getUnitId())
+                    // type
+                    + " " + String.valueOf(unit.getClass().equals(Cultist.class) ? 0 : 1)
+                    // hp
+                    + " " + String.valueOf(unit.getHp())
+                    // coords
+                    + " " + String.valueOf(unit.getCol())
+                    + " " + String.valueOf(unit.getRow())
+                    // player id
+                    + " " + String.valueOf(unit.getPlayerId()));
+        }
+
         player.sendInputLine(String.valueOf(validActions.size()));
         for (Action validAction : validActions) {
             player.sendInputLine(validAction.toString());
@@ -144,6 +175,15 @@ public class Referee extends AbstractReferee {
 
     @Override
     public void onEnd() {
-        // TODO: declare winner at end
+        String winningString;
+        if (gameManager.getPlayer(E.PLAYER_ONE_ID).getScore() > gameManager.getPlayer(E.PLAYER_TWO_ID).getScore()) {
+            winningString= viewController.endGameView(gameManager.getPlayer(E.PLAYER_ONE_ID).getAvatarToken());
+        } else if (gameManager.getPlayer(E.PLAYER_ONE_ID).getScore() < gameManager.getPlayer(E.PLAYER_TWO_ID).getScore()) {
+            winningString = viewController.endGameView(gameManager.getPlayer(E.PLAYER_TWO_ID).getAvatarToken());
+        } else {
+            winningString = viewController.endGameView(null);
+        }
+        gameManager.endGame();
+        gameManager.addToGameSummary(winningString);
     }
 }

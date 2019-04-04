@@ -1,0 +1,6 @@
+gameloop
+read numOfUnits:int
+loop numOfUnits read unitId:int type:int hp:int x:int y:int onwer:int
+read numOfActions:int
+loop numOfActions read  action:string(16)
+write 0 WAIT 0
