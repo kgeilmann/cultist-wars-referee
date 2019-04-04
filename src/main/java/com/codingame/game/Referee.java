@@ -5,10 +5,7 @@ import com.codingame.gameengine.core.AbstractReferee;
 import com.codingame.gameengine.core.MultiplayerGameManager;
 import com.codingame.gameengine.module.entities.GraphicEntityModule;
 import com.google.inject.Inject;
-import model.Action;
-import model.Board;
-import model.Tile;
-import model.Unit;
+import model.*;
 import view.ViewController;
 
 import java.util.List;
@@ -45,7 +42,9 @@ public class Referee extends AbstractReferee {
     @Override
     public void gameTurn(int turn) {
         // TODO: handle laymen movement
-        Player player = gameManager.getPlayer(turn % 2);
+        int playerId = turn % 2;
+
+        Player player = gameManager.getPlayer(playerId);
 
         if (turn == 0 || turn == 1) {
             sendInitInput(player);
@@ -84,6 +83,7 @@ public class Referee extends AbstractReferee {
             }
 
             viewController.updateView(currentUnit, action, affectedTile);
+            moveNeutralUnits();
 
         } catch (TimeoutException e) {
             player.deactivate(String.format("$%d timeout!", player.getIndex()));
@@ -93,6 +93,7 @@ public class Referee extends AbstractReferee {
             player.deactivate(String.format("$%d illegal move!", player.getIndex()));
             gameManager.endGame();
         }
+
     }
 
     private void sendInitInput(Player player) {
@@ -103,6 +104,19 @@ public class Referee extends AbstractReferee {
         player.sendInputLine(String.valueOf(validActions.size()));
         for (Action validAction : validActions) {
             player.sendInputLine(validAction.toString());
+        }
+    }
+
+    private void moveNeutralUnits() {
+        List<Unit> neutralUnits = board.getNeutralUnits();
+        if (!neutralUnits.isEmpty()) {
+            Unit neutralUnit = neutralUnits.get(E.random.nextInt(neutralUnits.size()));
+            List<Action> validActions = board.getValidActionsOfUnit(neutralUnit);
+            if (!validActions.isEmpty()) {
+                Action action = validActions.get(E.random.nextInt(validActions.size()));
+                board.update(neutralUnit, action);
+                viewController.updateView(neutralUnit, action, null);
+            }
         }
     }
 

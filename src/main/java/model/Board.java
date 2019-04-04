@@ -6,8 +6,8 @@ import java.util.List;
 public class Board {
     public static int WIDTH = 13;
     public static int HEIGHT = 7;
-    public static int NUMBER_OF_LAYMEN = 16;
-    private static int[] INITIAL_PRIEST_COLS = new int[]{1, Board.WIDTH - 2};
+    public static int NUMBER_OF_LAYMEN = 14;
+    private static int[] INITIAL_PRIEST_COLS = new int[]{0, Board.WIDTH - 1};
     private static int[] INITIAL_PRIEST_ROWS = new int[]{3, 3};
 
     private static int[] colModifiers = new int[]{0, 1, 0, -1};
@@ -59,7 +59,7 @@ public class Board {
     private void initLaymen() {
         // TODO: add laymen to the board
         for (int i = 2; i < NUMBER_OF_LAYMEN; i++) {
-            Tile tile = tiles[E.random.nextInt(WIDTH)][E.random.nextInt(HEIGHT)];
+            Tile tile = tiles[E.random.nextInt(WIDTH - 2) + 1][E.random.nextInt(HEIGHT)];
             while (tile.getUnit() != null) {
                 tile = tiles[E.random.nextInt(WIDTH)][E.random.nextInt(HEIGHT)];
             }
@@ -90,6 +90,27 @@ public class Board {
 
     public Tile getTile(int col, int row) {
         return tiles[col][row];
+    }
+
+    public List<Action> getValidActionsOfUnit(Unit currentUnit) {
+        List<Action> validActions = new ArrayList<>();
+        if (!currentUnit.isInGame()) return validActions;
+        validActions.add(new Action(currentUnit.getUnitId(), E.WAIT, "0"));
+        for (int i = 0; i < 4; i++) {
+            int col = currentUnit.getCol() + colModifiers[i];
+            int row = currentUnit.getRow() + rowModifiers[i];
+
+            if (!areValidCoordinates(col, row) || !isTileFree(col, row)) {
+                continue;
+            }
+
+            validActions.add(new Action(
+                    currentUnit.getUnitId(),
+                    E.MOVE,
+                    DIRECTIONS[i]));
+
+        }
+        return validActions;
     }
 
     public List<Action> getValidActions(int playerId) {
@@ -285,5 +306,15 @@ public class Board {
         Tile unitTile = tiles[currentUnit.getCol()][currentUnit.getRow()];
         Tile targetTile = tiles[target.getCol()][target.getRow()];
         return unitTile.distanceFrom(targetTile);
+    }
+
+    public List<Unit> getNeutralUnits() {
+        List<Unit> neutralUnits = new ArrayList<>();
+        for (Unit unit : allUnits) {
+            if (unit.getPlayerId() == E.PLAYER_NEUTRAL_ID) {
+                neutralUnits.add(unit);
+            }
+        }
+        return neutralUnits;
     }
 }
