@@ -6,20 +6,21 @@ import java.util.List;
 public class Board {
     public static int WIDTH = 13;
     public static int HEIGHT = 7;
-    public static int NUMBER_OF_LAYMEN = 14;
+    public static int NUMBER_OF_UNITS = 14;
     private static int[] INITIAL_PRIEST_COLS = new int[]{0, Board.WIDTH - 1};
     private static int[] INITIAL_PRIEST_ROWS = new int[]{3, 3};
 
     private static int[] colModifiers = new int[]{0, 1, 0, -1};
     private static int[] rowModifiers = new int[]{-1, 0, 1, 0};
     private static String[] DIRECTIONS = new String[]{E.UP, E.RIGHT, E.DOWN, E.LEFT};
-    private static final double OBSTACLE_CHANCE = 0.2;
+    private static final double OBSTACLE_CHANCE = 0.18;
 
     private Tile[][] tiles;
     private List<Unit> allUnits;
     int[] numberOfUnits;
 
-
+    // TODO: add symmetry
+    // TODO: add diagonal conversion
     public Board() {
         allUnits = new ArrayList<>();
         initTiles();
@@ -59,7 +60,7 @@ public class Board {
     }
 
     private void initLaymen() {
-        for (int i = 2; i < NUMBER_OF_LAYMEN; i++) {
+        for (int i = 2; i < NUMBER_OF_UNITS; i++) {
             Tile tile = tiles[E.random.nextInt(WIDTH - 2) + 1][E.random.nextInt(HEIGHT)];
             while (tile.getUnit() != null) {
                 tile = tiles[E.random.nextInt(WIDTH)][E.random.nextInt(HEIGHT)];
@@ -96,7 +97,7 @@ public class Board {
     public List<Action> getValidActionsOfUnit(Unit currentUnit) {
         List<Action> validActions = new ArrayList<>();
         if (!currentUnit.isInGame()) return validActions;
-        validActions.add(new Action(currentUnit.getUnitId(), E.WAIT, "0"));
+        validActions.add(new Action(currentUnit.getUnitId(), Action.Command.WAIT));
         for (int i = 0; i < 4; i++) {
             int col = currentUnit.getCol() + colModifiers[i];
             int row = currentUnit.getRow() + rowModifiers[i];
@@ -105,10 +106,10 @@ public class Board {
                 continue;
             }
 
-            validActions.add(new Action(
+            validActions.add(new MoveAction(
                     currentUnit.getUnitId(),
-                    E.MOVE,
-                    DIRECTIONS[i]));
+                    Action.Command.MOVE,
+                    col, row));
 
         }
         return validActions;
@@ -119,7 +120,7 @@ public class Board {
         for (Unit currentUnit : allUnits) {
             if (!currentUnit.isInGame() || currentUnit.getPlayerId() != playerId) continue;
 
-            validActions.add(new Action(currentUnit.getUnitId(), E.WAIT, "0"));
+            validActions.add(new Action(currentUnit.getUnitId(), Action.Command.WAIT));
 
             for (int i = 0; i < 4; i++) {
                 int col = currentUnit.getCol() + colModifiers[i];
@@ -129,10 +130,10 @@ public class Board {
                     continue;
                 }
 
-                validActions.add(new Action(
+                validActions.add(new MoveAction(
                         currentUnit.getUnitId(),
-                        E.MOVE,
-                        DIRECTIONS[i]));
+                        Action.Command.MOVE,
+                        col, row));
 
             }
 
@@ -143,10 +144,10 @@ public class Board {
                             && isInRange(currentUnit, enemyUnit)
                             && enemyUnit.isInGame()) {
                         validActions.add(
-                                new Action(
+                                new SpecialAction(
                                         currentUnit.getUnitId(),
-                                        E.SHOOT,
-                                        String.valueOf(enemyUnit.getUnitId())));
+                                        Action.Command.SHOOT,
+                                        enemyUnit.getUnitId()));
                     }
                 }
             } else if (currentUnit.getClass().equals(CultLeader.class)) {
@@ -159,11 +160,11 @@ public class Board {
                                 && neighborUnit.isInGame()
                                 && neighborUnit.getPlayerId() != currentUnit.getPlayerId()
                                 && !neighborUnit.getClass().equals(CultLeader.class)) {
-                            validActions.add(new Action(
+                            validActions.add(new SpecialAction(
                                     currentUnit.getUnitId(),
-                                    E.CONVERT,
-                                    String.valueOf(neighborUnit.getUnitId())
-                            ));
+                                    Action.Command.CONVERT,
+                                    neighborUnit.getUnitId())
+                            );
                         }
                     }
                 }
@@ -208,20 +209,20 @@ public class Board {
             case WAIT:
                 return null;
             case MOVE:
-                handleMove(currentUnit, action);
+                handleMove(currentUnit, (MoveAction) action);
                 return null;
             case SHOOT:
-                return handleShooting(currentUnit, action);
+                return handleShooting(currentUnit, (SpecialAction) action);
             case CONVERT:
-                return handleConvert(action);
+                return handleConvert((SpecialAction) action);
             default:
                 return null;
         }
     }
 
-    private Tile handleConvert(Action action) {
+    private Tile handleConvert(SpecialAction action) {
         int playerId = allUnits.get(action.getUnitId()).getPlayerId();
-        Unit affectedUnit = allUnits.get(Integer.parseInt(action.getTarget()));
+        Unit affectedUnit = allUnits.get(action.getTargetId());
         if (affectedUnit.getPlayerId() != E.PLAYER_NEUTRAL_ID) {
             numberOfUnits[affectedUnit.getPlayerId()]--;
         }
@@ -230,33 +231,20 @@ public class Board {
         return affectedUnit.getTile();
     }
 
-    private void handleMove(Unit currentUnit, Action action) {
-        switch (action.getTarget()) {
-            case "UP":
-                currentUnit.setTile(tiles[currentUnit.getCol()][currentUnit.getRow() - 1]);
-                break;
-            case "DOWN":
-                currentUnit.setTile(tiles[currentUnit.getCol()][currentUnit.getRow() + 1]);
-                break;
-            case "RIGHT":
-                currentUnit.setTile(tiles[currentUnit.getCol() + 1][currentUnit.getRow()]);
-                break;
-            case "LEFT":
-                currentUnit.setTile(tiles[currentUnit.getCol() - 1][currentUnit.getRow()]);
-                break;
-        }
+    private void handleMove(Unit currentUnit, MoveAction action) {
+        currentUnit.setTile(tiles[action.getCol()][action.getRow()]);
     }
 
-    private Tile handleShooting(Unit currentUnit, Action action) {
-        int targetId = Integer.parseInt(action.getTarget());
+    private Tile handleShooting(Unit currentUnit, SpecialAction action) {
+        int targetId = action.getTargetId();
         Unit target = allUnits.get(targetId);
-        int distance = unitDistance(currentUnit, target);
 
         Tile startTile = tiles[currentUnit.getCol()][currentUnit.getRow()];
         Tile targetTile = tiles[target.getCol()][target.getRow()];
         Tile hitTile = checkBulletPath(startTile, targetTile);
 
         if (hitTile.getUnit() != null) {
+            int distance = unitDistance(currentUnit, hitTile.getUnit());
             int damage = E.MAX_DAMAGE - distance * E.DAMAGE_REDUCTION_COEFF;
             hitTile.getUnit().takeDamage(damage);
             if (!hitTile.getUnit().isInGame()) {
@@ -340,5 +328,21 @@ public class Board {
             }
         }
         return unitsInGame;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder boardSb = new StringBuilder();
+        for (int y = 0; y < HEIGHT; y++) {
+            for (int x = 0; x < WIDTH; x++) {
+                if (tiles[x][y].getType().equals(Tile.Type.FLOOR)) {
+                    boardSb.append(".");
+                } else {
+                    boardSb.append("x");
+                }
+            }
+            boardSb.append("\n");
+        }
+        return boardSb.toString();
     }
 }

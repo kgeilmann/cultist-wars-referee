@@ -1,30 +1,48 @@
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 import java.util.Scanner;
-
-
-enum Command {
-    MOVE, SHOOT, CONVERT, WAIT
-}
+import java.util.SplittableRandom;
 
 class Action {
-    private final int unitId;
-    private final Command command;
-    private final String target;
+    protected final int unitId;
+    protected final Command command;
 
-    public Action(int unitId, String commandString, String target) {
+    public enum Command {
+        MOVE, SHOOT, CONVERT, WAIT
+    }
+
+    static public Action parseAction(String[] output) {
+        switch (Command.valueOf(output[1])) {
+            case WAIT:
+                return new Action(Integer.parseInt(output[0]), Command.WAIT);
+            case MOVE:
+                return new MoveAction(
+                        Integer.parseInt(output[0]),
+                        Command.MOVE,
+                        Integer.parseInt(output[2]),
+                        Integer.parseInt(output[3]));
+            case SHOOT:
+                return new SpecialAction(
+                        Integer.parseInt(output[0]),
+                        Command.SHOOT,
+                        Integer.parseInt(output[2]));
+            case CONVERT:
+                return new SpecialAction(
+                        Integer.parseInt(output[0]),
+                        Command.CONVERT,
+                        Integer.parseInt(output[2]));
+            default:
+                throw new IllegalArgumentException();
+        }
+
+    }
+
+    public Action(int unitId, Command command) {
         this.unitId = unitId;
-        this.command = Command.valueOf(commandString);
-        this.target = target;
+        this.command = command;
     }
 
     public Command getCommand() {
         return command;
-    }
-
-    public String getTarget() {
-        return target;
     }
 
     public int getUnitId() {
@@ -39,69 +57,152 @@ class Action {
         Action action = (Action) o;
 
         if (unitId != action.unitId) return false;
-        if (command != action.command) return false;
-        return target != null ? target.equals(action.target) : action.target == null;
+        return command == action.command;
     }
 
     @Override
     public int hashCode() {
         int result = unitId;
         result = 31 * result + (command != null ? command.hashCode() : 0);
-        result = 31 * result + (target != null ? target.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return unitId + " " + command + " " + target;
+        return unitId + " " + command;
+    }
+}
+
+class MoveAction extends Action {
+    private final int col;
+    private final int row;
+
+    public MoveAction(int unitId, Command command, int col, int row) {
+        super(unitId, command);
+        this.col = col;
+        this.row = row;
+    }
+
+    public int getCol() {
+        return col;
+    }
+
+    public int getRow() {
+        return row;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        MoveAction that = (MoveAction) o;
+
+        if (col != that.col) return false;
+        return row == that.row;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + col;
+        result = 31 * result + row;
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return unitId + " " + command + " " + col + " " + row;
+    }
+}
+
+class SpecialAction extends Action {
+    private int targetId;
+
+    public SpecialAction(int unitId, Command command, int targetId) {
+        super(unitId, command);
+        this.targetId = targetId;
+    }
+
+    public int getTargetId() {
+        return targetId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null) return false;
+        if (!super.equals(o)) return false;
+
+        SpecialAction that = (SpecialAction) o;
+
+        return targetId == that.targetId;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + targetId;
+        return result;
+    }
+
+
+    @Override
+    public String toString() {
+        return unitId + " " + command + " " + targetId;
     }
 }
 
 
-public class Agent1 {
-    static int counter = 0;
-    static Random random = new Random();
+/**
+ * Convert neutral units and attack enemy ones
+ **/
+class Agent1 {
+    static SplittableRandom random = new SplittableRandom();
 
+    public static void main(String args[]) {
+        Scanner in = new Scanner(System.in);
+        int firstOrSecond = in.nextInt(); // 0 - you are the first player, 2 - you are the second player
+        int width = in.nextInt(); // Width of the board
+        int height = in.nextInt(); // Height of the board
+        for (int i = 0; i < height; i++) {
+            String row = in.next(); // A row of the board: "." is empty, "x" is obstacle
+        }
+        in.nextLine();
 
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-
+        // game loop
         while (true) {
-            int numOfUnits = scanner.nextInt();
+            int numOfUnits = in.nextInt(); // The total number of units on the board
             for (int i = 0; i < numOfUnits; i++) {
-                int unitId = scanner.nextInt();
-                int type = scanner.nextInt();
-                int hp = scanner.nextInt();
-                int x = scanner.nextInt();
-                int y = scanner.nextInt();
-                int onwer = scanner.nextInt();
+                int unitId = in.nextInt(); // The unit's ID
+                int unitType = in.nextInt(); // The unit's type: 0 = Cultist, 1 = Cult Leader
+                int hp = in.nextInt(); // Health points of the unit
+                int x = in.nextInt(); // X coordinate of the unit
+                int y = in.nextInt(); // Y coordinate of the unit
+                int owner = in.nextInt(); // unit: 0 - your unit, 1 - opponent, 2 - neutral
             }
-
-            int numberOfActions = scanner.nextInt();
-            scanner.nextLine();
-
-            List<Action> validActions = new ArrayList<>();
+            int numOfActions = in.nextInt(); // The number of your valid actions
+            if (in.hasNextLine()) {
+                in.nextLine();
+            }
+            ArrayList<Action> actions = new ArrayList<>();
             Action chosenAction = null;
-            for (int i = 0; i < numberOfActions; i++) {
-                String[] actionString = scanner.nextLine().split(" ");
-                Action newAction = new Action(
-                        Integer.parseInt(actionString[0]),
-                        actionString[1],
-                        actionString[2]);
-                if (newAction.getCommand().equals(Command.CONVERT)) {
-                    chosenAction = newAction;
+            for (int i = 0; i < numOfActions; i++) {
+                Action action = Action.parseAction(in.nextLine().trim().split(" "));
+                actions.add(action); // A possible valid action
+                if (action.getCommand().equals(Action.Command.CONVERT)) {
+                    chosenAction = action;
                 }
-                validActions.add(newAction);
             }
 
-            int randomMoveIndex = random.nextInt(numberOfActions);
-            if (chosenAction == null) {
-                chosenAction = validActions.get(randomMoveIndex);
-            }
-//            Action chosenAction = validActions.size() > 1 ? validActions.get(1) : validActions.get(0);
-//            Action chosenAction = validActions.get(counter++ % (validActions.size()));
+            // Write an action using System.out.println()
+            // To debug: System.err.println("Debug messages...");
+
+
+            // unitId WAIT 0 | unitId MOVE direction | unitId SHOOT target| unitId CONVERT target
+            chosenAction = chosenAction == null  ? actions.get(random.nextInt(actions.size())) : chosenAction;
             System.out.println(chosenAction);
-//            System.out.println(" B WAIT 0");
         }
     }
 }

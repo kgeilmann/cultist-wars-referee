@@ -1,26 +1,46 @@
 package model;
 
 public class Action {
-    private final int unitId;
-    private final Command command;
-    private final String target;
+    protected final int unitId;
+    protected final Command command;
 
     public enum Command {
         MOVE, SHOOT, CONVERT, WAIT
     }
 
-    public Action(int unitId, String commandString, String target) {
+    static public Action parseAction(String[] output) {
+        switch (Command.valueOf(output[1])) {
+            case WAIT:
+                return new Action(Integer.parseInt(output[0]), Command.WAIT);
+            case MOVE:
+                return new MoveAction(
+                        Integer.parseInt(output[0]),
+                        Command.MOVE,
+                        Integer.parseInt(output[2]),
+                        Integer.parseInt(output[3]));
+            case SHOOT:
+                return new SpecialAction(
+                        Integer.parseInt(output[0]),
+                        Command.SHOOT,
+                        Integer.parseInt(output[2]));
+            case CONVERT:
+                return new SpecialAction(
+                        Integer.parseInt(output[0]),
+                        Command.CONVERT,
+                        Integer.parseInt(output[2]));
+            default:
+                throw new IllegalArgumentException();
+        }
+
+    }
+
+    public Action(int unitId, Command command) {
         this.unitId = unitId;
-        this.command = Command.valueOf(commandString);
-        this.target = target;
+        this.command = command;
     }
 
     public Command getCommand() {
         return command;
-    }
-
-    public String getTarget() {
-        return target;
     }
 
     public int getUnitId() {
@@ -35,20 +55,18 @@ public class Action {
         Action action = (Action) o;
 
         if (unitId != action.unitId) return false;
-        if (command != action.command) return false;
-        return target != null ? target.equals(action.target) : action.target == null;
+        return command == action.command;
     }
 
     @Override
     public int hashCode() {
         int result = unitId;
         result = 31 * result + (command != null ? command.hashCode() : 0);
-        result = 31 * result + (target != null ? target.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return unitId + " " + command + " " + target;
+        return unitId + " " + command;
     }
 }

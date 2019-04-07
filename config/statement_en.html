@@ -8,7 +8,7 @@
         </h1>
         <div class="statement-goal-content">
             The aim of this game is to gain as many followers as possible.
-            You win if your opponents number of units
+            You win if your opponent's number of units
             drops to 0 or if you have more units than your enemy by the last round.
             <br>
             <br>
@@ -21,38 +21,98 @@
             <span>Rules</span>
         </h1>
         <div>
-            <div class="statement-rules-content">Your program receives characters.<br>
-                Your actions have an effect.<br>
+            <div class="statement-rules-content">
+                The game is played on a grid <strong>13</strong> units wide and <strong>7</strong> units high. The
+                coordinate <strong>X=0</strong>, <strong>Y=0</strong> is the top left cell. The positions of obstacles and
+                neutral units is randomly generated.<br>
+
                 <br>
-                The game zone works as follows:
+
+                <strong>Turns</strong> play our in the following way:
                 <ul>
-                    <li>There are coordinates.</li>
+                    <li>A player performs <strong> 1 action / turn</strong>. The action can be perfomed by any of the player's units.</li>
+                    <li>A random neutral unit moves in a random direction.</li>
+                    <li>The player's turn ends.</li>
+                </ul>
+
+                <strong>Moving</strong> works in the following way:
+                <ul>
+                    <li>Units can <const>MOVE</const> in four directions.
+                    </li>
+                    <li>Units cannot move on squares with obstacles.</li>
+                    <li>Only one unit can be on a square at a time.</li>
+                </ul>
+
+                You have two types of <strong>units</strong>:
+                <ul>
+                    <li><strong>Cult Leader:</strong> This is your initial unit and you have only one of it.
+                    It can <const>WAIT</const>, <const>MOVE</const> or <const>CONVERT</const> enemy units. It has 10 hp.</li>
+                    <li><strong>Cultist:</strong> Neutral units become cultists when you convert them.
+                        It can <const>WAIT</const>, <const>MOVE</const> or <const>SHOOT</const> enemy units. It has 10 hp.
+                    (<strong>Neutral</strong> units are Cultists but can't shoot until converted).</li>
                 </ul>
                 <br>
-                The units work as follows:
+
+                    <strong>Shooting</strong> works in the following way:
                 <ul>
-                    <li>They move around.</li>
+                    <li>Damage = 7 - distance. Therefore, the maximum damage is 6 hp.</li>
+                    <li>The range of <strong>Cultists</strong> is <const>6</const>. Distances are calculated using <strong>Manhattan distance</strong>.</li>
+                    <li>The path of bullets is calculated based on <a href="https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm" target="_blank">Bresenham's line algorithm</a>.</li>
+                    <li>Only shooting at enemy units withing range are valid moves but if an obstacle
+                        or any unit is on the bullet path between the shooter and the target, then it's hit instead of the target.</li>
+                    <li>Obstacles are indestructible.</li>
+
                 </ul>
-                You <strong>lose</strong> if:
+                <br>
+
+                <strong>Converting</strong> units works in the following way:
                 <ul>
-                    <li>You mess up.</li>
-                    <li>You do not supply a valid sequence of actions.</li>
+                    <li>Cult leaders can convert neutral units or enemy cultists. The enemy cult leader cannot be converted.</li>
+                    <li>A cult leader can convert units standing on neighboring cells in the four directions.</li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Victory conditions -->
+    <div class="statement-victory-conditions">
+        <div class="icon victory"></div>
+        <div class="blk">
+            <div class="title">Victory Conditions</div>
+            <div class="text">
+                <ul style="padding-bottom: 0;">
+                    <li>
+                        Have more units by the last round than your opponent.
+                    </li>
+                    <li>
+                        Destroy all enemy units.
+                    </li>
                 </ul>
             </div>
         </div>
     </div>
-    <!-- EXAMPLES -->
-    <div class="statement-section statement-examples">
-        <h1>
-            <span class="icon icon-example">&nbsp;</span>
-            <span>Example</span>
-        </h1>
-
-        <div class="statement-examples-text">
-            TODO
+    <!-- Lose conditions -->
+    <div class="statement-lose-conditions">
+        <div class="icon lose"></div>
+        <div class="blk">
+            <div class="title">Loss Conditions</div>
+            <div class="text">
+                <ul style="padding-bottom: 0;">
+                    <li>
+                        Have less units by the last round than your opponent.
+                    </li>
+                    <li>
+                        Your number of units drops to 0.
+                    </li>
+                    <li>
+                        You output an invalid action.
+                    </li>
+                </ul>
+            </div>
         </div>
-
     </div>
+    <br>
 
     <!-- PROTOCOL -->
     <div class="statement-section statement-protocol">
@@ -60,11 +120,15 @@
             <span class="icon icon-protocol">&nbsp;</span>
             <span>Game Input</span>
         </h1>
+
         <!-- Protocol block -->
         <div class="blk">
-            <div class="text">The program must first read the initialization data from standard input. Then, provide to
-                the
-                standard output one line with ...
+            <div class="title">Initial Input</div>
+            <div class="text">
+                <p><span class="statement-lineno">Line 1: </span><var>myId</var>: 0 - first player, 1 - second player</p>
+                <p><span class="statement-lineno">Line 2: </span><var>width</var>, <var>height</var>: The width and height of the game board</p>
+                <p><span class="statement-lineno">Next <var>height</var> lines: </span>A string <var>row</var> representing a row of the grid
+                    (<strong>"."</strong> is an empty cell, <strong>"x"</strong> is a cell with an obstacle).</p>
             </div>
         </div>
 
@@ -72,7 +136,24 @@
         <div class="blk">
             <div class="title">Input</div>
             <div class="text">
-                <p><span class="statement-lineno">Line 1: </span>one string <var>...</var>, the ...</p>
+                <p><span class="statement-lineno">Line 1: </span><var>numOfUnits</var>: the total number of units on the board.</p>
+                <p><span class="statement-lineno">Next <var>numOfUnits</var> lines: </span>
+                    <ul>
+                    <li><var>unitId</var>: individual id of the unit.</li>
+                <li><var>type</var>: The type of the unit.  <strong>0</strong> = <const>CULTIST</const>,
+                    <strong>1</strong> = <const>CULT LEADER</const>. </li>
+                <li><var>hp</var>: current health points of the unit</li>
+                <li><var>x</var>: <strong>x</strong> coordinate of the unit.</li>
+                <li><var>y</var>: <strong>y</strong> coordinate of the unit.</li>
+                <li><var>owner</var>: ID of the owning player. <strong>0</strong> - Player 1, <strong>1</strong> - Player 2, <strong>2</strong> - neutral
+
+                </ul>
+                </p>
+            </div>
+            <div class="text">
+                <p><span class="statement-lineno">Next line: </span><var>numOfActions</var>: the total number of valid actions.</p>
+                <p><span class="statement-lineno">Next <var>numOfActions</var> lines:</span> A string <var>action</var> that is a valid action.
+                </p>
             </div>
         </div>
 
@@ -80,7 +161,13 @@
         <div class="blk">
             <div class="title">Output</div>
             <div class="text">
-                <span class="statement-lineno">A single line</span> containing ...
+                <span class="statement-lineno">A single line, one of the following:</span><br>
+                <ul>
+                    <li>A <var>unitId</var> <const>WAIT</const></li>
+                    <li>A <var>unitId</var> <const>MOVE</const>  <var>x</var>  <var>y</var></li>
+                    <li>A <var>unitId</var>  <const>SHOOT</const> <var>targetId</var></li>
+                    <li>A <var>unitId</var> <const>CONVERT</const> <var>targetId</var></li>
+                </ul>
                 <br>
             </div>
         </div>
@@ -88,25 +175,19 @@
         <!-- Protocol block -->
         <div class="blk">
             <div class="title">Constraints</div>
-            <div class="text"><var>...</var> contains between 1 and 500 characters.<br>
-                <br>Allotted response time to output
+            <div class="text">
+                Allotted response time to output
                 is ≤
                 <const>50</const>
-                seconds.
+                milliseconds.
+                <br>
+                Health points = <const>10</const>.<br>
+                Board width is <const>13</const>, height is <const>7</const>. <br>
+                Shooting range is <const>6</const>.<br>
+                Total number of units is <const>14</const>.<br>
+                Number of turns is <const>400</const>.
             </div>
         </div>
     </div>
-    <!-- STORY -->
-    <div class="statement-story-background">
-        <div class="statement-story-cover"
-             style="background-size: cover; background-image: url(https://www.codingame.com/servlet/fileservlet?id=2210505809934)">
-            <div class="statement-story" style="min-height: 300px; position: relative">
-                <h1>Title</h1>
-                <div class="story-text">Story
-                    <br>
-                    TODO
-                </div>
-            </div>
-        </div>
-    </div>
+
 </div>

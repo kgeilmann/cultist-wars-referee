@@ -28,13 +28,11 @@ public class ViewController {
     private List<Group> unitSpriteGroups;
     private List<Sprite> unitSprites;
     private List<HealthBar> healthBars;
-    private Text[] unitNumberHud;
+    private BitmapText[] unitNumberHud;
     private Sprite bulletSprite;
     private SpriteAnimation cutAnimation;
     private SpriteAnimation convertAnimation;
     private SpriteAnimation puffAnimation;
-
-    // TODO: change fonts
 
     public ViewController(
             GraphicEntityModule graphicEntityModule,
@@ -197,11 +195,10 @@ public class ViewController {
                 .setY(90)
                 .setAlpha(0.7);
         healthBars.add(new HealthBar(rectangleGreen, rectangleRed));
-        Text unitIdText = graphicEntityModule.createText(Integer.toString(unit.getUnitId()))
-                .setFillColor(16777215)
-                .setFontFamily("Impact")
-                .setFontWeight(Text.FontWeight.LIGHTER)
-                .setFontSize(20)
+        BitmapText unitIdText = graphicEntityModule.createBitmapText()
+                .setText(Integer.toString(unit.getUnitId()))
+                .setFont("font")
+                .setFontSize(15)
                 .setX(5)
                 .setY(5);
 
@@ -216,7 +213,7 @@ public class ViewController {
     }
 
     public void createHudsView() {
-        unitNumberHud = new Text[2];
+        unitNumberHud = new BitmapText[2];
         createPlayerHudView(E.PLAYER_ONE_ID);
         createPlayerHudView(E.PLAYER_TWO_ID);
     }
@@ -246,21 +243,23 @@ public class ViewController {
                 .setImage(gameManager.getPlayer(playerId).getAvatarToken())
                 .setX(x)
                 .setY(y)
+                .setBaseWidth(100)
+                .setBaseHeight(100)
                 .setAnchor(0.5);
-        Text playerName = graphicEntityModule.createText(gameManager.getPlayer(playerId).getNicknameToken())
-                .setFontFamily("Impact")
+        BitmapText playerName = graphicEntityModule.createBitmapText()
+                .setText(gameManager.getPlayer(playerId).getNicknameToken())
+                .setFont("font")
                 .setX(x)
                 .setY(430)
-                .setFontSize(50)
-                .setFillColor(0xFFFFFF)
+                .setFontSize(25)
                 .setAnchor(0.5)
                 .setAlpha(0.9);
-        unitNumberHud[playerId] = graphicEntityModule.createText("Units: 1")
-                .setFontFamily("Impact")
+        unitNumberHud[playerId] = graphicEntityModule.createBitmapText()
+                .setText("Units: 1")
+                .setFont("font")
                 .setX(x)
                 .setY(500)
-                .setFontSize(50)
-                .setFillColor(0xFFFFFF)
+                .setFontSize(25)
                 .setAnchor(0.5)
                 .setAlpha(0.9);
     }
@@ -293,7 +292,8 @@ public class ViewController {
                 updateHealthBar(affectedTile.getUnit());
                 break;
             case CONVERT:
-                int affectedUnitId = Integer.parseInt(action.getTarget());
+                SpecialAction specialAction = (SpecialAction) action;
+                int affectedUnitId = specialAction.getTargetId();
                 Sprite affectedSprite = unitSprites.get(affectedUnitId);
                 if (currentUnit.getPlayerId() == E.PLAYER_ONE_ID) {
                     affectedSprite.setImage("red_cultist.png");
@@ -377,15 +377,15 @@ public class ViewController {
                 .setY(1080 / 4)
                 .setZIndex(10_002)
                 .setVisible(false);
-        Text winnerText = graphicEntityModule.createText(winningString)
-                .setFontFamily("Impact")
-                .setFillColor(0xffffff)
+        BitmapText winnerText = graphicEntityModule.createBitmapText()
+                .setText(winningString)
+                .setFont("font")
                 .setVisible(false)
                 .setAnchor(0.5)
                 .setX(1920 / 2)
                 .setZIndex(10_002)
                 .setY((1080 / 3) * 2)
-                .setFontSize(160);
+                .setFontSize(100);
 
         graphicEntityModule.commitEntityState(0, whiteRect, blackRect);
         whiteRect.setAlpha(1);

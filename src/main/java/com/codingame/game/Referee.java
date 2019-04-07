@@ -10,8 +10,6 @@ import view.ViewController;
 
 import java.util.List;
 
-// TODO: make stub
-
 public class Referee extends AbstractReferee {
     public static int MAX_ROUNDS = 400;
     private static int FRAME_DURATION = 400;
@@ -60,7 +58,7 @@ public class Referee extends AbstractReferee {
             if (!validActions.contains(action)) {
                 gameManager.addToGameSummary(String.format("$%d illegal move!", player.getIndex()));
                 player.setScore(-1);
-                onEnd();
+                onEndGame();
                 return;
             }
 
@@ -78,13 +76,13 @@ public class Referee extends AbstractReferee {
             gameManager.addToGameSummary(String.format("$%d timeout!", player.getIndex()));
             player.setScore(-1);
             System.err.println(e);
-            onEnd();
+            onEndGame();
             return;
         } catch (Exception e) {
             gameManager.addToGameSummary(String.format("$%d invalid output!", player.getIndex()));
             player.setScore(-1);
             System.err.println(e);
-            onEnd();
+            onEndGame();
             return;
         }
         gameManager.addToGameSummary("\nTurn: " + turn);
@@ -94,8 +92,7 @@ public class Referee extends AbstractReferee {
                 || turn == MAX_ROUNDS - 1) {
             gameManager.getPlayer(E.PLAYER_ONE_ID).setScore(board.getNumberOfUnits(E.PLAYER_ONE_ID));
             gameManager.getPlayer(E.PLAYER_TWO_ID).setScore(board.getNumberOfUnits(E.PLAYER_TWO_ID));
-            onEnd();
-            return;
+            onEndGame();
         }
     }
 
@@ -120,8 +117,9 @@ public class Referee extends AbstractReferee {
                         + " col " + unit.getRow());
                 break;
             case CONVERT:
+                SpecialAction specialAction = (SpecialAction) action;
                 gameManager.addToGameSummary("Unit " + action.getUnitId()
-                        + " converted unit " + action.getTarget());
+                        + " converted unit " + specialAction.getTargetId());
                 break;
             case WAIT:
                 gameManager.addToGameSummary("Unit " + action.getUnitId()
@@ -132,7 +130,9 @@ public class Referee extends AbstractReferee {
     }
 
     private void sendInitInput(Player player) {
-        // TODO: send init input
+        player.sendInputLine(String.valueOf(player.getIndex()));
+        player.sendInputLine(Board.WIDTH + " " + Board.HEIGHT);
+        player.sendInputLine(board.toString().trim());
     }
 
     private void sendInputs(Player player, List<Action> validActions) {
@@ -140,6 +140,7 @@ public class Referee extends AbstractReferee {
         player.sendInputLine(String.valueOf(unitsInGame.size()));
         for (Unit unit : unitsInGame) {
             // unit id
+            int playerId = player.getIndex();
             player.sendInputLine(String.valueOf(
                     // unit id
                     unit.getUnitId())
@@ -173,8 +174,7 @@ public class Referee extends AbstractReferee {
         }
     }
 
-    @Override
-    public void onEnd() {
+    public void onEndGame() {
         String winningString;
         if (gameManager.getPlayer(E.PLAYER_ONE_ID).getScore() > gameManager.getPlayer(E.PLAYER_TWO_ID).getScore()) {
             winningString= viewController.endGameView(gameManager.getPlayer(E.PLAYER_ONE_ID).getAvatarToken());

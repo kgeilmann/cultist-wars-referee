@@ -1,6 +1,30 @@
+read myId:int
+read width:int height:int
+loop height read row:word(15)
 gameloop
 read numOfUnits:int
-loop numOfUnits read unitId:int type:int hp:int x:int y:int onwer:int
+loop numOfUnits read unitId:int unitType:int hp:int x:int y:int owner:int
 read numOfActions:int
 loop numOfActions read  action:string(16)
-write 0 WAIT 0
+write 0 WAIT
+
+STATEMENT
+Convert neutral units and attack enemy ones
+
+INPUT
+myId: 0 - you are the first player, 1 - you are the second player
+width: Width of the board
+height: Height of the board
+row: A row of the board: "." is empty, "x" is obstacle
+numOfUnits: The total number of units on the board
+unitId: The unit's ID
+unitType: The unit's type: 0 = Cultist, 1 = Cult Leader
+hp: Health points of the unit
+x: X coordinate of the unit
+y: Y coordinate of the unit
+owner: unit: id of owner player
+numOfActions: The number of your valid actions
+action: A possible valid action
+
+OUTPUT
+unitId WAIT | unitId MOVE x y | unitId SHOOT target| unitId CONVERT target
