@@ -23,53 +23,65 @@
         <div>
             <div class="statement-rules-content">
                 The game is played on a grid <strong>13</strong> units wide and <strong>7</strong> units high. The
-                coordinate <strong>X=0</strong>, <strong>Y=0</strong> is the top left cell. The positions of obstacles and
-                neutral units is randomly generated.<br>
+                coordinate <strong>X=0</strong>, <strong>Y=0</strong> is the top left tile. The positions of obstacles and
+                neutral units is randomly generated, but is symmetric.<br>
 
+                <br>
+
+                <strong>Units</strong>, there are three types:
+                <ul>
+                    <li><strong>Neutral</strong> unit: Technically cultists but move randomly and cannot shoot until converted.</li>
+                    <img src="images/neutral.jpg" style="max-width:80%;max-height:80%;">
+                    <li><strong>Cult Leader:</strong> This is your initial unit and you have only one of it.
+                        It can <const>WAIT</const>, <const>MOVE</const> or <const>CONVERT</const> neutral and enemy units. It has 10 hp.</li>
+                    <img src="images/cultleader.jpg" style="max-width:80%;max-height:80%;">
+                    <li><strong>Cultist:</strong> Neutral units become cultists when you convert them.
+                        It can <const>WAIT</const>, <const>MOVE</const> or <const>SHOOT</const> enemy units. It has 10 hp.</li>
+                    <img src="images/cultist.jpg" style="max-width:80%;max-height:80%;">
+                </ul>
                 <br>
 
                 <strong>Turns</strong> play our in the following way:
-                <ul>
+                <ol>
                     <li>A player performs <strong> 1 action / turn</strong>. The action can be perfomed by any of the player's units.</li>
                     <li>A random neutral unit moves in a random direction.</li>
                     <li>The player's turn ends.</li>
-                </ul>
+                </ol>
 
                 <strong>Moving</strong> works in the following way:
                 <ul>
-                    <li>Units can <const>MOVE</const> in four directions.
-                    </li>
-                    <li>Units cannot move on squares with obstacles.</li>
-                    <li>Only one unit can be on a square at a time.</li>
+                    <li>Units can <const>MOVE</const> in four directions.</li>
+                    <li>Units can <const>MOVE</const> one tile per round.</li>
+                    <li>Units cannot move on tiles with obstacles or with other units.</li>
+                    <img src="images/move.jpg" style="max-width:20%;max-height:20%;">
                 </ul>
-
-                You have two types of <strong>units</strong>:
-                <ul>
-                    <li><strong>Cult Leader:</strong> This is your initial unit and you have only one of it.
-                    It can <const>WAIT</const>, <const>MOVE</const> or <const>CONVERT</const> enemy units. It has 10 hp.</li>
-                    <li><strong>Cultist:</strong> Neutral units become cultists when you convert them.
-                        It can <const>WAIT</const>, <const>MOVE</const> or <const>SHOOT</const> enemy units. It has 10 hp.
-                    (<strong>Neutral</strong> units are Cultists but can't shoot until converted).</li>
-                </ul>
-                <br>
 
                     <strong>Shooting</strong> works in the following way:
                 <ul>
-                    <li>Damage = 7 - distance. Therefore, the maximum damage is 6 hp.</li>
+                    <li><strong>Damage</strong> is 7 - distance. Therefore, the maximum damage is 6 hp.</li>
                     <li>The range of <strong>Cultists</strong> is <const>6</const>. Distances are calculated using <strong>Manhattan distance</strong>.</li>
                     <li>The path of bullets is calculated based on <a href="https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm" target="_blank">Bresenham's line algorithm</a>.</li>
-                    <li>Only shooting at enemy units withing range are valid moves but if an obstacle
-                        or any unit is on the bullet path between the shooter and the target, then it's hit instead of the target.</li>
+                    <li>If an obstacle or any unit is on the bullet path between the shooter and the target, then it's hit instead of the target.</li>
                     <li>Obstacles are indestructible.</li>
 
+                    <img src="images/shooting.jpg" style="max-width:20%;max-height:20%;">
                 </ul>
                 <br>
 
                 <strong>Converting</strong> units works in the following way:
                 <ul>
                     <li>Cult leaders can convert neutral units or enemy cultists. The enemy cult leader cannot be converted.</li>
-                    <li>A cult leader can convert units standing on neighboring cells in the four directions.</li>
+                    <li>A cult leader can convert units standing on neighboring tiles in the four directions (they cannot convert diagonally).</li>
+
+                    <img src="images/convert.jpg" style="max-width:20%;max-height:20%;">
                 </ul>
+
+                <strong>Pathfinding</strong> works in the following way:
+                <li>If a unit is told to move to a non-adjacent tile, convert a unit on a non-adjacent tile,
+                    or told to shoot at a target beyond its range, it will move towards the target tile on the shortest
+                    available path to the target tile. If no path is available, it'll still move along the shortest path
+                    until it hits the obstacle.</li>
+                <img src="images/pathfinding.jpg" style="max-width:20%;max-height:20%;">
 
             </div>
         </div>
@@ -125,10 +137,10 @@
         <div class="blk">
             <div class="title">Initial Input</div>
             <div class="text">
-                <p><span class="statement-lineno">Line 1: </span><var>myId</var>: 0 - first player, 1 - second player</p>
+                <p><span class="statement-lineno">Line 1: </span><var>myId</var>: <const>0</const> - first player, <const>1</const> - second player</p>
                 <p><span class="statement-lineno">Line 2: </span><var>width</var>, <var>height</var>: The width and height of the game board</p>
-                <p><span class="statement-lineno">Next <var>height</var> lines: </span>A string <var>row</var> representing a row of the grid
-                    (<strong>"."</strong> is an empty cell, <strong>"x"</strong> is a cell with an obstacle).</p>
+                <p><span class="statement-lineno">Next <var>height</var> lines: </span>A string <var>y</var> representing a y of the grid
+                    (<const>"."</const> is an empty tile, <const>"x"</const> is a tile with an obstacle).</p>
             </div>
         </div>
 
@@ -140,19 +152,14 @@
                 <p><span class="statement-lineno">Next <var>numOfUnits</var> lines: </span>
                     <ul>
                     <li><var>unitId</var>: individual id of the unit.</li>
-                <li><var>type</var>: The type of the unit.  <strong>0</strong> = <const>CULTIST</const>,
-                    <strong>1</strong> = <const>CULT LEADER</const>. </li>
+                <li><var>type</var>: The type of the unit.  <const>0</const> = <strong>CULTIST</strong>,
+                    <const>1</const> = <strong>CULT LEADER</strong>. </li>
                 <li><var>hp</var>: current health points of the unit</li>
                 <li><var>x</var>: <strong>x</strong> coordinate of the unit.</li>
                 <li><var>y</var>: <strong>y</strong> coordinate of the unit.</li>
-                <li><var>owner</var>: ID of the owning player. <strong>0</strong> - Player 1, <strong>1</strong> - Player 2, <strong>2</strong> - neutral
+                <li><var>owner</var>: ID of the owning player. <const>0</const> - Player 1, <const>1</const> - Player 2, <const>2</const> - neutral
 
                 </ul>
-                </p>
-            </div>
-            <div class="text">
-                <p><span class="statement-lineno">Next line: </span><var>numOfActions</var>: the total number of valid actions.</p>
-                <p><span class="statement-lineno">Next <var>numOfActions</var> lines:</span> A string <var>action</var> that is a valid action.
                 </p>
             </div>
         </div>
@@ -163,10 +170,10 @@
             <div class="text">
                 <span class="statement-lineno">A single line, one of the following:</span><br>
                 <ul>
-                    <li>A <var>unitId</var> <const>WAIT</const></li>
-                    <li>A <var>unitId</var> <const>MOVE</const>  <var>x</var>  <var>y</var></li>
-                    <li>A <var>unitId</var>  <const>SHOOT</const> <var>targetId</var></li>
-                    <li>A <var>unitId</var> <const>CONVERT</const> <var>targetId</var></li>
+                    <li><const>WAIT</const></li>
+                    <li><var>unitId</var> <const>MOVE</const>  <var>x</var>  <var>y</var></li>
+                    <li><var>unitId</var>  <const>SHOOT</const> <var>targetId</var></li>
+                    <li><var>unitId</var> <const>CONVERT</const> <var>targetId</var></li>
                 </ul>
                 <br>
             </div>
@@ -176,16 +183,17 @@
         <div class="blk">
             <div class="title">Constraints</div>
             <div class="text">
-                Allotted response time to output
+                Allotted <strong>response time</strong> to output
                 is ≤
                 <const>50</const>
                 milliseconds.
                 <br>
-                Health points = <const>10</const>.<br>
-                Board width is <const>13</const>, height is <const>7</const>. <br>
-                Shooting range is <const>6</const>.<br>
-                Total number of units is <const>14</const>.<br>
-                Number of turns is <const>400</const>.
+                <strong>Health points</strong> = <const>10</const>.<br>
+                <strong>Damage</strong> = <const>7</const> - <var>distance</var>
+                Board <strong>width</strong> is <const>13</const>, <strong>height</strong> is <const>7</const>. <br>
+                Shooting <strong>range</strong> is <const>6</const>.<br>
+                Total <strong>number of units</strong> is <const>14</const>.<br>
+                <strong>Number of turns</strong> is <const>400</const>.
             </div>
         </div>
     </div>

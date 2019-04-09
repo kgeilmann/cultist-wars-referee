@@ -1,31 +1,44 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class Board {
     public static int WIDTH = 13;
     public static int HEIGHT = 7;
+    public static int NEUTRAL_BOUND = 5;
     public static int NUMBER_OF_UNITS = 14;
+    public static int NUMBER_OF_NEUTRALS = NUMBER_OF_UNITS - 2;
     private static int[] INITIAL_PRIEST_COLS = new int[]{0, Board.WIDTH - 1};
     private static int[] INITIAL_PRIEST_ROWS = new int[]{3, 3};
 
-    private static int[] colModifiers = new int[]{0, 1, 0, -1};
-    private static int[] rowModifiers = new int[]{-1, 0, 1, 0};
-    private static String[] DIRECTIONS = new String[]{E.UP, E.RIGHT, E.DOWN, E.LEFT};
-    private static final double OBSTACLE_CHANCE = 0.18;
+    private static int[] X_MODIFIER = new int[]{0, 1, 0, -1};
+    private static int[] Y_MODIFIER = new int[]{-1, 0, 1, 0};
+    private static final double OBSTACLE_CHANCE = 0.2;
 
-    private Tile[][] tiles;
-    private List<Unit> allUnits;
+    public Tile[][] tiles;
+    public List<Unit> allUnits;
     int[] numberOfUnits;
 
-    // TODO: add symmetry
-    // TODO: add diagonal conversion
-    public Board() {
+    private class BfsNode {
+        BfsNode parent;
+        Tile tile;
+        int distance;
+
+        public BfsNode(BfsNode parent, Tile tile, int distance) {
+            this.parent = parent;
+            this.tile = tile;
+            this.distance = distance;
+        }
+    }
+
+    public Board(boolean testing) {
         allUnits = new ArrayList<>();
         initTiles();
         initCultLeaders();
-        initLaymen();
+        if (!testing) {
+            initLaymen();
+            initExtraObstacles();
+        }
         numberOfUnits = new int[]{1, 1};
     }
 
@@ -60,13 +73,25 @@ public class Board {
     }
 
     private void initLaymen() {
-        for (int i = 2; i < NUMBER_OF_UNITS; i++) {
-            Tile tile = tiles[E.random.nextInt(WIDTH - 2) + 1][E.random.nextInt(HEIGHT)];
+        int laymanCounter = 2;
+        for (int i = 0; i < NUMBER_OF_NEUTRALS / 2; i++) {
+            Tile tile = tiles[E.random.nextInt(NEUTRAL_BOUND) + 1][E.random.nextInt(HEIGHT)];
             while (tile.getUnit() != null) {
                 tile = tiles[E.random.nextInt(WIDTH)][E.random.nextInt(HEIGHT)];
             }
             Cultist layman = new Cultist(
-                    i,
+                    laymanCounter++,
+                    tile,
+                    E.PLAYER_NEUTRAL_ID
+            );
+            allUnits.add(layman);
+        }
+
+        for (int i = 0; i < NUMBER_OF_NEUTRALS / 2; i++) {
+            Unit mirror = allUnits.get(2 + i);
+            Tile tile = tiles[WIDTH - 1 - mirror.getCol()][mirror.getRow()];
+            Cultist layman = new Cultist(
+                    laymanCounter++,
                     tile,
                     E.PLAYER_NEUTRAL_ID
             );
@@ -75,15 +100,59 @@ public class Board {
     }
 
 
-    public void initExtraObstacles() {
-        for (int col = 0; col < WIDTH - 1; col++) {
-            for (int row = 0; row < Board.HEIGHT; row++) {
-                if (tiles[col][row].getUnit() == null
-                        && E.random.nextDouble() < OBSTACLE_CHANCE) {
-                    tiles[col][row].setType(Tile.Type.OBSTACLE);
+    private void initExtraObstacles() {
+        int obstacleCount;
+        do {
+            obstacleCount = 0;
+            resetTiles();
+            for (int col = 0; col < (WIDTH - 1) / 2; col++) {
+                for (int row = 0; row < Board.HEIGHT; row++) {
+                    if (tiles[col][row].getUnit() == null
+                            && E.random.nextDouble() < OBSTACLE_CHANCE) {
+                        tiles[col][row].setType(Tile.Type.OBSTACLE);
+                        tiles[WIDTH - 1 - col][row].setType(Tile.Type.OBSTACLE);
+                        obstacleCount += 2;
+                    }
+                }
+            }
+        } while (!allCellsAreReachable(obstacleCount));
+
+        // TODO: add sleep pod in the middle
+    }
+
+    private void resetTiles() {
+        for (int x = 0; x < WIDTH; x++) {
+            for (int y = 0; y < HEIGHT; y++) {
+                tiles[x][y].setType(Tile.Type.FLOOR);
+            }
+        }
+    }
+
+    private boolean allCellsAreReachable(int obstacleCount) {
+        Queue<BfsNode> toVisit = new LinkedList<>();
+        Set<Tile> visitedTiles = new HashSet<>();
+
+        toVisit.add(new BfsNode(null, allUnits.get(0).getTile(), 0));
+
+        while (!toVisit.isEmpty()) {
+            BfsNode currentNode = toVisit.poll();
+            visitedTiles.add(currentNode.tile);
+
+            // check children
+            for (int i = 0; i < 4; i++) {
+                int x = currentNode.tile.getX() + X_MODIFIER[i];
+                int y = currentNode.tile.getY() + Y_MODIFIER[i];
+                if (areValidCoordinates(x, y)) {
+                    Tile childTile = tiles[x][y];
+                    if (tiles[childTile.getX()][childTile.getY()].getType().equals(Tile.Type.FLOOR)
+                            && !visitedTiles.contains(childTile)) {
+                        toVisit.add(new BfsNode(currentNode, childTile, currentNode.distance + 1));
+                    }
                 }
             }
         }
+
+        return visitedTiles.size() == (WIDTH * HEIGHT) - obstacleCount;
     }
 
     public List<Unit> getUnits() {
@@ -94,13 +163,12 @@ public class Board {
         return tiles[col][row];
     }
 
-    public List<Action> getValidActionsOfUnit(Unit currentUnit) {
+    public List<Action> getValidActionsOfNeutralUnit(Unit currentUnit) {
         List<Action> validActions = new ArrayList<>();
         if (!currentUnit.isInGame()) return validActions;
-        validActions.add(new Action(currentUnit.getUnitId(), Action.Command.WAIT));
         for (int i = 0; i < 4; i++) {
-            int col = currentUnit.getCol() + colModifiers[i];
-            int row = currentUnit.getRow() + rowModifiers[i];
+            int col = currentUnit.getCol() + X_MODIFIER[i];
+            int row = currentUnit.getRow() + Y_MODIFIER[i];
 
             if (!areValidCoordinates(col, row) || !isTileFree(col, row)) {
                 continue;
@@ -112,65 +180,9 @@ public class Board {
                     col, row));
 
         }
-        return validActions;
-    }
-
-    public List<Action> getValidActions(int playerId) {
-        List<Action> validActions = new ArrayList<>();
-        for (Unit currentUnit : allUnits) {
-            if (!currentUnit.isInGame() || currentUnit.getPlayerId() != playerId) continue;
-
-            validActions.add(new Action(currentUnit.getUnitId(), Action.Command.WAIT));
-
-            for (int i = 0; i < 4; i++) {
-                int col = currentUnit.getCol() + colModifiers[i];
-                int row = currentUnit.getRow() + rowModifiers[i];
-
-                if (!areValidCoordinates(col, row) || !isTileFree(col, row)) {
-                    continue;
-                }
-
-                validActions.add(new MoveAction(
-                        currentUnit.getUnitId(),
-                        Action.Command.MOVE,
-                        col, row));
-
-            }
-
-            if (currentUnit.getClass().equals(Cultist.class)
-                    && currentUnit.getPlayerId() != E.PLAYER_NEUTRAL_ID) {
-                for (Unit enemyUnit : allUnits) {
-                    if (enemyUnit.getPlayerId() != currentUnit.getPlayerId()
-                            && isInRange(currentUnit, enemyUnit)
-                            && enemyUnit.isInGame()) {
-                        validActions.add(
-                                new SpecialAction(
-                                        currentUnit.getUnitId(),
-                                        Action.Command.SHOOT,
-                                        enemyUnit.getUnitId()));
-                    }
-                }
-            } else if (currentUnit.getClass().equals(CultLeader.class)) {
-                for (int i = 0; i < 4; i++) {
-                    int col = currentUnit.getCol() + colModifiers[i];
-                    int row = currentUnit.getRow() + rowModifiers[i];
-                    if (col >= 0 && col < Board.WIDTH && row >= 0 && row < Board.HEIGHT) {
-                        Unit neighborUnit = tiles[col][row].getUnit();
-                        if (neighborUnit != null
-                                && neighborUnit.isInGame()
-                                && neighborUnit.getPlayerId() != currentUnit.getPlayerId()
-                                && !neighborUnit.getClass().equals(CultLeader.class)) {
-                            validActions.add(new SpecialAction(
-                                    currentUnit.getUnitId(),
-                                    Action.Command.CONVERT,
-                                    neighborUnit.getUnitId())
-                            );
-                        }
-                    }
-                }
-            }
+        if (validActions.isEmpty()) {
+            validActions.add(new Action(Action.Command.WAIT));
         }
-
         return validActions;
     }
 
@@ -180,24 +192,17 @@ public class Board {
                 <= Cultist.RANGE;
     }
 
-    private boolean areValidCoordinates(int col, int row) {
-        return col >= 0 && col < Board.WIDTH && row >= 0 && row < Board.HEIGHT;
+    private boolean areValidCoordinates(int x, int y) {
+        return x >= 0 && x < Board.WIDTH && y >= 0 && y < Board.HEIGHT;
+    }
+
+    private boolean isValidUnitId(int unitId) {
+        return unitId >= 0 && unitId < NUMBER_OF_UNITS;
     }
 
     private boolean isTileFree(int col, int row) {
-        if (tiles[col][row].getType().equals(Tile.Type.OBSTACLE)) {
-            return false;
-        }
-
-        // check if move is occupied by other unit
-        boolean free = true;
-        for (Unit unit : allUnits) {
-            if (unit.getCol() == col && unit.getRow() == row && unit.isInGame()) {
-                free = false;
-                break;
-            }
-        }
-        return free;
+        return tiles[col][row].getType().equals(Tile.Type.FLOOR)
+                && tiles[col][row].getUnit() == null;
     }
 
     public Unit getUnit(int index) {
@@ -232,7 +237,7 @@ public class Board {
     }
 
     private void handleMove(Unit currentUnit, MoveAction action) {
-        currentUnit.setTile(tiles[action.getCol()][action.getRow()]);
+        currentUnit.setTile(tiles[action.getX()][action.getY()]);
     }
 
     private Tile handleShooting(Unit currentUnit, SpecialAction action) {
@@ -330,6 +335,71 @@ public class Board {
         return unitsInGame;
     }
 
+    public void checkActionValidity(Action action, int playerId) {
+        switch (action.getCommand()) {
+            case MOVE:
+                validateMoveAction((MoveAction) action, playerId);
+                break;
+            case SHOOT:
+                validateShootAction((SpecialAction) action, playerId);
+                break;
+            case CONVERT:
+                validateConvertAction((SpecialAction) action, playerId);
+                break;
+        }
+    }
+
+    private void validateConvertAction(SpecialAction action, int playerId) {
+        if (!isValidUnitId(action.getUnitId())) {
+            throw new IllegalArgumentException(action.getUnitId() + " is not a valid unit ID");
+        }
+        if (allUnits.get(action.getUnitId()).getPlayerId() != playerId) {
+            throw new IllegalArgumentException(action.getUnitId() + " is not your unit");
+        }
+        if (!isValidUnitId(action.getTargetId())) {
+            throw new IllegalArgumentException("Invalid target ID");
+        }
+        if (allUnits.get(action.getTargetId()).getPlayerId() == playerId) {
+            throw new IllegalArgumentException("Can't convert own unit");
+        }
+        if (allUnits.get(action.getTargetId()).getUnitId() == E.PLAYER_ONE_ID
+                || allUnits.get(action.getTargetId()).getUnitId() == E.PLAYER_TWO_ID) {
+            throw new IllegalArgumentException("Cult leaders cannot be converted");
+        }
+    }
+
+    private void validateShootAction(SpecialAction action, int playerId) {
+        if (!isValidUnitId(action.getUnitId())) {
+            throw new IllegalArgumentException(action.getUnitId() + " is not a valid unit ID");
+        }
+        if (allUnits.get(action.getUnitId()).getPlayerId() != playerId) {
+            throw new IllegalArgumentException(action.getUnitId() + " is not your unit");
+        }
+        if (!isValidUnitId(action.getTargetId())) {
+            throw new IllegalArgumentException("Invalid target ID");
+        }
+        if (action.getUnitId() == action.getTargetId()) {
+            throw new IllegalArgumentException("Unit cannot shoot itself");
+        }
+        if (action.getUnitId() == playerId) {
+            throw new IllegalArgumentException("Cult leaders cannot shoot.");
+        }
+    }
+
+    private void validateMoveAction(MoveAction action, int playerId) {
+        if (!isValidUnitId(action.getUnitId())) {
+            throw new IllegalArgumentException(action.getUnitId() + " is not a valid unit ID");
+        }
+        if (allUnits.get(action.getUnitId()).getPlayerId() != playerId) {
+            throw new IllegalArgumentException(action.getUnitId() + " is not your unit");
+        }
+        if (!areValidCoordinates(action.getX(), action.getY())) {
+            throw new IllegalArgumentException("Invalid coordinates");
+        }
+    }
+
+
+
     @Override
     public String toString() {
         StringBuilder boardSb = new StringBuilder();
@@ -344,5 +414,150 @@ public class Board {
             boardSb.append("\n");
         }
         return boardSb.toString();
+    }
+
+    public Action getFinalAction(Action action) {
+        switch (action.getCommand()) {
+            case WAIT:
+                return action;
+            case MOVE:
+                return getMoveAction((MoveAction) action);
+            case SHOOT:
+                return getShootAction((SpecialAction) action);
+            case CONVERT:
+                return getConvertAction((SpecialAction) action);
+            default:
+                return action;
+        }
+    }
+
+    private Action getConvertAction(SpecialAction specialAction) {
+        Tile unitTile = allUnits.get(specialAction.getUnitId()).getTile();
+        Tile targetTile = allUnits.get(specialAction.getTargetId()).getTile();
+        if (unitTile.distanceFrom(targetTile) == 1) {
+            return specialAction;
+        } else {
+            return getMoveAction(new MoveAction(specialAction.getUnitId(),
+                    Action.Command.MOVE, targetTile.getX(), targetTile.getY()));
+        }
+    }
+
+    private Action getShootAction(SpecialAction specialAction) {
+        Tile unitTile = allUnits.get(specialAction.getUnitId()).getTile();
+        Tile targetTile = allUnits.get(specialAction.getTargetId()).getTile();
+        if (unitTile.distanceFrom(targetTile) <= 6) {
+            return specialAction;
+        } else {
+            return getMoveAction(new MoveAction(specialAction.getUnitId(),
+                    Action.Command.MOVE, targetTile.getX(), targetTile.getY()));
+        }
+    }
+
+    private Action getMoveAction(MoveAction moveAction) {
+        Tile unitTile = allUnits.get(moveAction.getUnitId()).getTile();
+        Tile targetTile = tiles[moveAction.getX()][moveAction.getY()];
+        // if moving to same tile
+        if (unitTile.equals(targetTile)) {
+            return new Action(Action.Command.WAIT);
+        }
+        // is on adjacent cell?
+        else if (unitTile.distanceFrom(targetTile) == 1) {
+            if (isTileFree(targetTile.getX(), targetTile.getY())) {
+                return moveAction;
+            } else {
+                return new Action(Action.Command.WAIT);
+            }
+        } else {
+            // find path to cell
+            Tile firstTileOfPath = findPath(unitTile, targetTile);
+            if (firstTileOfPath != null) {
+                return new MoveAction(moveAction.getUnitId(), Action.Command.MOVE,
+                        firstTileOfPath.getX(), firstTileOfPath.getY());
+            } else {
+                Tile tileInDirection = getTileInDirection(unitTile, targetTile);
+                if (tileInDirection != null) {
+                    return new MoveAction(moveAction.getUnitId(), Action.Command.MOVE,
+                            tileInDirection.getX(), tileInDirection.getY());
+                } else {
+                    return new Action(Action.Command.WAIT);
+                }
+            }
+        }
+    }
+
+    private Tile getTileInDirection(Tile unitTile, Tile targetTile) {
+        // TODO: improve pathfinding
+        Queue<BfsNode> toVisit = new LinkedList<>();
+        Set<Tile> visitedTiles = new HashSet<>();
+
+        toVisit.add(new BfsNode(null, unitTile, 0));
+
+        while (!toVisit.isEmpty()) {
+            BfsNode currentNode = toVisit.poll();
+            visitedTiles.add(currentNode.tile);
+
+            // check children
+            for (int i = 0; i < 4; i++) {
+                int x = currentNode.tile.getX() + X_MODIFIER[i];
+                int y = currentNode.tile.getY() + Y_MODIFIER[i];
+                if (areValidCoordinates(x, y)) {
+                    Tile childTile =
+                            tiles[x][y];
+                    if (childTile.equals(targetTile)) {
+                        Tile ancestor = getAncestor(currentNode);
+                        if (ancestor.getUnit() == null) {
+                            return ancestor;
+                        } else {
+                            return null;
+                        }
+                    }
+                    if (tiles[childTile.getX()][childTile.getY()].getType().equals(Tile.Type.FLOOR)
+                            && !visitedTiles.contains(childTile)) {
+                        toVisit.add(new BfsNode(currentNode, childTile, currentNode.distance + 1));
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private Tile findPath(Tile unitTile, Tile targetTile) {
+        // TODO: improve pathfinding and merge two pathfinding functions
+        Queue<BfsNode> toVisit = new LinkedList<>();
+        Set<Tile> visitedTiles = new HashSet<>();
+
+        toVisit.add(new BfsNode(null, unitTile, 0));
+
+        while (!toVisit.isEmpty()) {
+            BfsNode currentNode = toVisit.poll();
+            visitedTiles.add(currentNode.tile);
+
+            // check children
+            for (int i = 0; i < 4; i++) {
+                int x = currentNode.tile.getX() + X_MODIFIER[i];
+                int y = currentNode.tile.getY() + Y_MODIFIER[i];
+                if (areValidCoordinates(x, y)) {
+                    Tile childTile =
+                            tiles[x][y];
+                    if (childTile.equals(targetTile)) {
+                        return getAncestor(currentNode);
+                    }
+                    if (isTileFree(childTile.getX(), childTile.getY())
+                            && !visitedTiles.contains(childTile)) {
+                        toVisit.add(new BfsNode(currentNode, childTile, currentNode.distance + 1));
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private Tile getAncestor(BfsNode currentNode) {
+        while (currentNode.parent.parent != null) {
+            currentNode = currentNode.parent;
+        }
+        return currentNode.tile;
     }
 }

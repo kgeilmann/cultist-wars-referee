@@ -1,7 +1,7 @@
 package model;
 
 public class Action {
-    protected final int unitId;
+    protected int unitId;
     protected final Command command;
 
     public enum Command {
@@ -11,7 +11,7 @@ public class Action {
     static public Action parseAction(String[] output) {
         switch (Command.valueOf(output[1])) {
             case WAIT:
-                return new Action(Integer.parseInt(output[0]), Command.WAIT);
+                return new Action(Command.WAIT);
             case MOVE:
                 return new MoveAction(
                         Integer.parseInt(output[0]),
@@ -29,13 +29,12 @@ public class Action {
                         Command.CONVERT,
                         Integer.parseInt(output[2]));
             default:
-                throw new IllegalArgumentException();
+                throw new IllegalArgumentException(output[1] + " is not a valid action");
         }
 
     }
 
-    public Action(int unitId, Command command) {
-        this.unitId = unitId;
+    public Action(Command command) {
         this.command = command;
     }
 
@@ -43,7 +42,11 @@ public class Action {
         return command;
     }
 
+
     public int getUnitId() {
+        if (command.equals(Command.WAIT)) {
+            throw new IllegalArgumentException("Trying to access WAIT command unitId");
+        }
         return unitId;
     }
 
@@ -54,19 +57,16 @@ public class Action {
 
         Action action = (Action) o;
 
-        if (unitId != action.unitId) return false;
         return command == action.command;
     }
 
     @Override
     public int hashCode() {
-        int result = unitId;
-        result = 31 * result + (command != null ? command.hashCode() : 0);
-        return result;
+        return command != null ? command.hashCode() : 0;
     }
 
     @Override
     public String toString() {
-        return unitId + " " + command;
+        return  command.toString();
     }
 }

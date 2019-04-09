@@ -14,7 +14,7 @@ public class MoveUnitTest {
 
     @Before
     public void initBoard() {
-        board = new Board();
+        board = new Board(true);
     }
 
     @Test

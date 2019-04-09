@@ -28,8 +28,7 @@ public class Referee extends AbstractReferee {
         gameManager.setFrameDuration(FRAME_DURATION);
         gameManager.setTurnMaxTime(50);
 
-        board = new Board();
-        board.initExtraObstacles();
+        board = new Board(false);
 
         viewController = new ViewController(graphicEntityModule, gameManager, board);
         viewController.createTilesView();
@@ -48,27 +47,24 @@ public class Referee extends AbstractReferee {
             sendInitInput(player);
         }
 
-        List<Action> validActions = board.getValidActions(player.getIndex());
-        sendInputs(player, validActions);
+        sendInputs(player);
         player.execute();
 
         try {
             Action action = player.getAction();
-            // Check validity of the player output and compute the new game state
-            if (!validActions.contains(action)) {
-                gameManager.addToGameSummary(String.format("$%d illegal move!", player.getIndex()));
-                player.setScore(-1);
-                onEndGame();
-                return;
+                board.checkActionValidity(action, player.getIndex());
+
+                action = board.getFinalAction(action);
+
+            if (!action.getCommand().equals(Action.Command.WAIT)) {
+                Unit currentUnit = board.getUnit(action.getUnitId());
+
+                Tile affectedTile = board.update(currentUnit, action);
+
+                updateGameSummary(action, affectedTile, currentUnit);
+
+                viewController.updateView(currentUnit, action, affectedTile);
             }
-
-            Unit currentUnit = board.getUnit(action.getUnitId());
-
-            Tile affectedTile = board.update(currentUnit, action);
-
-            updateGameSummary(action, affectedTile, currentUnit);
-
-            viewController.updateView(currentUnit, action, affectedTile);
 
             moveNeutralUnit();
 
@@ -79,7 +75,7 @@ public class Referee extends AbstractReferee {
             onEndGame();
             return;
         } catch (Exception e) {
-            gameManager.addToGameSummary(String.format("$%d invalid output!", player.getIndex()));
+            gameManager.addToGameSummary(e.getMessage());
             player.setScore(-1);
             System.err.println(e);
             onEndGame();
@@ -122,8 +118,8 @@ public class Referee extends AbstractReferee {
                         + " converted unit " + specialAction.getTargetId());
                 break;
             case WAIT:
-                gameManager.addToGameSummary("Unit " + action.getUnitId()
-                        + " is waiting");
+                gameManager.addToGameSummary("Player " + currentUnit.getPlayerId()
+                        + "is waiting");
                 break;
         }
 
@@ -135,7 +131,7 @@ public class Referee extends AbstractReferee {
         player.sendInputLine(board.toString().trim());
     }
 
-    private void sendInputs(Player player, List<Action> validActions) {
+    private void sendInputs(Player player) {
         List<Unit> unitsInGame = board.getUnitsInGame();
         player.sendInputLine(String.valueOf(unitsInGame.size()));
         for (Unit unit : unitsInGame) {
@@ -154,18 +150,13 @@ public class Referee extends AbstractReferee {
                     // player id
                     + " " + String.valueOf(unit.getPlayerId()));
         }
-
-        player.sendInputLine(String.valueOf(validActions.size()));
-        for (Action validAction : validActions) {
-            player.sendInputLine(validAction.toString());
-        }
     }
 
     private void moveNeutralUnit() {
         List<Unit> neutralUnits = board.getNeutralUnits();
         if (!neutralUnits.isEmpty()) {
             Unit neutralUnit = neutralUnits.get(E.random.nextInt(neutralUnits.size()));
-            List<Action> validActions = board.getValidActionsOfUnit(neutralUnit);
+            List<Action> validActions = board.getValidActionsOfNeutralUnit(neutralUnit);
             if (!validActions.isEmpty()) {
                 Action action = validActions.get(E.random.nextInt(validActions.size()));
                 board.update(neutralUnit, action);

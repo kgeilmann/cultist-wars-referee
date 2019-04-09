@@ -1,21 +1,22 @@
 package model;
 
 public class MoveAction extends Action {
-    private final int col;
-    private final int row;
+    private final int x;
+    private final int y;
 
-    public MoveAction(int unitId, Command command, int col, int row) {
-        super(unitId, command);
-        this.col = col;
-        this.row = row;
+    public MoveAction(int unitId, Command command, int x, int y) {
+        super(command);
+        this.unitId = unitId;
+        this.x = x;
+        this.y = y;
     }
 
-    public int getCol() {
-        return col;
+    public int getX() {
+        return x;
     }
 
-    public int getRow() {
-        return row;
+    public int getY() {
+        return y;
     }
 
     @Override
@@ -26,20 +27,22 @@ public class MoveAction extends Action {
 
         MoveAction that = (MoveAction) o;
 
-        if (col != that.col) return false;
-        return row == that.row;
+        if (unitId != that.unitId) return false;
+        if (x != that.x) return false;
+        return y == that.y;
     }
 
     @Override
     public int hashCode() {
         int result = super.hashCode();
-        result = 31 * result + col;
-        result = 31 * result + row;
+        result = 31 * result + unitId;
+        result = 31 * result + x;
+        result = 31 * result + y;
         return result;
     }
 
     @Override
     public String toString() {
-        return unitId + " " + command + " " + col + " " + row;
+        return unitId + " " + command + " " + x + " " + y;
     }
 }

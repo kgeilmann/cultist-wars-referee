@@ -46,6 +46,7 @@ public class ViewController {
     public void createTilesView() {
         // TODO: switch to spritesheet
         // TODO: switch to using FX module
+        // TODO: add sleeping pod in middle
 
         tileGroup = graphicEntityModule.createBufferedGroup()
                 .setX(BOARD_OFFSET_X - ENTITY_SIZE)
@@ -301,8 +302,10 @@ public class ViewController {
                     affectedSprite.setImage("blue_cultist.png");
                 }
                 playFx(affectedTile, convertAnimation);
-                unitNumberHud[currentUnit.getPlayerId()]
-                        .setText("Units: " + board.getNumberOfUnits(currentUnit.getPlayerId()));
+                unitNumberHud[E.PLAYER_ONE_ID]
+                        .setText("Units: " + board.getNumberOfUnits(E.PLAYER_ONE_ID));
+                unitNumberHud[E.PLAYER_TWO_ID]
+                        .setText("Units: " + board.getNumberOfUnits(E.PLAYER_TWO_ID));
                 break;
         }
     }
