@@ -9,9 +9,12 @@ public class Action {
     }
 
     static public Action parseAction(String[] output) {
+        if (output[0].equals("WAIT")) {
+
+            return new Action(Command.WAIT);
+        }
+
         switch (Command.valueOf(output[1])) {
-            case WAIT:
-                return new Action(Command.WAIT);
             case MOVE:
                 return new MoveAction(
                         Integer.parseInt(output[0]),

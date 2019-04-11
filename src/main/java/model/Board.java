@@ -19,6 +19,15 @@ public class Board {
     public List<Unit> allUnits;
     int[] numberOfUnits;
 
+    public void removeDeadUnitsFromTiles() {
+        for (Unit unit : allUnits) {
+            if (!unit.isInGame() && unit.getTile() != null) {
+                unit.getTile().setUnit(null);
+                unit.setTile(null);
+            }
+        }
+    }
+
     private class BfsNode {
         BfsNode parent;
         Tile tile;
@@ -77,7 +86,7 @@ public class Board {
         for (int i = 0; i < NUMBER_OF_NEUTRALS / 2; i++) {
             Tile tile = tiles[E.random.nextInt(NEUTRAL_BOUND) + 1][E.random.nextInt(HEIGHT)];
             while (tile.getUnit() != null) {
-                tile = tiles[E.random.nextInt(WIDTH)][E.random.nextInt(HEIGHT)];
+                tile = tiles[E.random.nextInt(NEUTRAL_BOUND) + 1][E.random.nextInt(HEIGHT)];
             }
             Cultist layman = new Cultist(
                     laymanCounter++,
@@ -237,7 +246,7 @@ public class Board {
     }
 
     private void handleMove(Unit currentUnit, MoveAction action) {
-        currentUnit.setTile(tiles[action.getX()][action.getY()]);
+        currentUnit.moveTo(tiles[action.getX()][action.getY()]);
     }
 
     private Tile handleShooting(Unit currentUnit, SpecialAction action) {
@@ -362,9 +371,19 @@ public class Board {
         if (allUnits.get(action.getTargetId()).getPlayerId() == playerId) {
             throw new IllegalArgumentException("Can't convert own unit");
         }
-        if (allUnits.get(action.getTargetId()).getUnitId() == E.PLAYER_ONE_ID
-                || allUnits.get(action.getTargetId()).getUnitId() == E.PLAYER_TWO_ID) {
+        if (action.getTargetId() == E.PLAYER_ONE_ID
+                || action.getTargetId() == E.PLAYER_TWO_ID) {
             throw new IllegalArgumentException("Cult leaders cannot be converted");
+        }
+        if (action.getUnitId() != E.PLAYER_ONE_ID
+                && action.getUnitId() != E.PLAYER_TWO_ID) {
+            throw new IllegalArgumentException("Only cult leaders can convert");
+        }
+        if (!allUnits.get(action.getUnitId()).isInGame()) {
+            throw new IllegalArgumentException("Unit " + action.getUnitId() +  " is no longer in game");
+        }
+        if (!allUnits.get(action.getTargetId()).isInGame()) {
+            throw new IllegalArgumentException("Unit " + action.getTargetId() +  " is no longer in game");
         }
     }
 
@@ -384,6 +403,12 @@ public class Board {
         if (action.getUnitId() == playerId) {
             throw new IllegalArgumentException("Cult leaders cannot shoot.");
         }
+        if (!allUnits.get(action.getUnitId()).isInGame()) {
+            throw new IllegalArgumentException("Unit " + action.getUnitId() +  " is no longer in game");
+        }
+        if (!allUnits.get(action.getTargetId()).isInGame()) {
+            throw new IllegalArgumentException("Unit " + action.getTargetId() +  " is no longer in game");
+        }
     }
 
     private void validateMoveAction(MoveAction action, int playerId) {
@@ -395,6 +420,9 @@ public class Board {
         }
         if (!areValidCoordinates(action.getX(), action.getY())) {
             throw new IllegalArgumentException("Invalid coordinates");
+        }
+        if (!allUnits.get(action.getUnitId()).isInGame()) {
+            throw new IllegalArgumentException("Unit " + action.getUnitId() +  " is no longer in game");
         }
     }
 

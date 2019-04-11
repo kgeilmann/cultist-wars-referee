@@ -21,6 +21,10 @@ public abstract class Unit {
     }
 
     public void setTile(Tile tile) {
+        this.tile = tile;
+    }
+
+    public void moveTo(Tile tile) {
         this.tile.setUnit(null);
         tile.setUnit(this);
         this.tile = tile;

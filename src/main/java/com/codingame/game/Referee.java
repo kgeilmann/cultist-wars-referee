@@ -9,6 +9,7 @@ import model.*;
 import view.ViewController;
 
 import java.util.List;
+import java.util.SplittableRandom;
 
 public class Referee extends AbstractReferee {
     public static int MAX_ROUNDS = 400;
@@ -24,6 +25,7 @@ public class Referee extends AbstractReferee {
 
     @Override
     public void init() {
+        E.random = new SplittableRandom(gameManager.getSeed());
         gameManager.setMaxTurns(MAX_ROUNDS);
         gameManager.setFrameDuration(FRAME_DURATION);
         gameManager.setTurnMaxTime(50);
@@ -67,6 +69,8 @@ public class Referee extends AbstractReferee {
             }
 
             moveNeutralUnit();
+
+            board.removeDeadUnitsFromTiles();
 
         } catch (TimeoutException e) {
             gameManager.addToGameSummary(String.format("$%d timeout!", player.getIndex()));

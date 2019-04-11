@@ -20,7 +20,7 @@ unitType: The unit's type: 0 = Cultist, 1 = Cult Leader
 hp: Health points of the unit
 x: X coordinate of the unit
 y: Y coordinate of the unit
-owner: unit: id of owner player
+owner: id of owner player
 
 OUTPUT
-unitId WAIT | unitId MOVE x y | unitId SHOOT target| unitId CONVERT target
+WAIT | unitId MOVE x y | unitId SHOOT target| unitId CONVERT target

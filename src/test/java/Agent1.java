@@ -4,122 +4,6 @@ import java.util.SplittableRandom;
 import java.util.ArrayList;
 
 
-class Action {
-    protected final int unitId;
-    protected final Command command;
-
-    static public Action parseAction(String[] output) {
-        switch (Command.valueOf(output[1])) {
-            case WAIT:
-                return new Action(Integer.parseInt(output[0]), Command.WAIT);
-            case MOVE:
-                return new MoveAction(
-                        Integer.parseInt(output[0]),
-                        Command.MOVE,
-                        Integer.parseInt(output[2]),
-                        Integer.parseInt(output[3]));
-            case SHOOT:
-                return new SpecialAction(
-                        Integer.parseInt(output[0]),
-                        Command.SHOOT,
-                        Integer.parseInt(output[2]));
-            case CONVERT:
-                return new SpecialAction(
-                        Integer.parseInt(output[0]),
-                        Command.CONVERT,
-                        Integer.parseInt(output[2]));
-            default:
-                throw new IllegalArgumentException();
-        }
-
-    }
-
-    public Action(int unitId, Command command) {
-        this.unitId = unitId;
-        this.command = command;
-    }
-
-    public Command getCommand() {
-        return command;
-    }
-
-    public int getUnitId() {
-        return unitId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Action action = (Action) o;
-
-        if (unitId != action.unitId) return false;
-        return command == action.command;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = unitId;
-        result = 31 * result + (command != null ? command.hashCode() : 0);
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return unitId + " " + command;
-    }
-}
-
-enum Command {
-    MOVE, SHOOT, CONVERT, WAIT
-}
-
-class MoveAction extends Action {
-    final int col;
-    final int row;
-
-    public MoveAction(int unitId, Command command, int col, int row) {
-        super(unitId, command);
-        this.col = col;
-        this.row = row;
-    }
-
-    public int getCol() {
-        return col;
-    }
-
-    public int getRow() {
-        return row;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
-
-        MoveAction that = (MoveAction) o;
-
-        if (col != that.col) return false;
-        return row == that.row;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + col;
-        result = 31 * result + row;
-        return result;
-    }
-
-    @Override
-    public String toString() {
-        return unitId + " " + command + " " + col + " " + row;
-    }
-}
-
-
 /**
  * Convert neutral units and attack enemy ones
  **/
@@ -136,6 +20,7 @@ class Agent1 {
             String row = in.next(); // A row of the board: "." is empty, "x" is obstacle
             state.addRow(row, i);
         }
+        in.nextLine();
 
         // game loop
         while (true) {
@@ -155,47 +40,15 @@ class Agent1 {
                     state.enemyAndNeutralUnits.add(unit);
                 }
             }
-            Unit closestUnitToConvert = state.findClosestUnitToConvert();
-//            System.err.println(closestUnitToConvert);
-            System.out.println(myId + " CONVERT " + closestUnitToConvert.unitId);
+            if (state.myUnits.size() < 4 && state.myUnits.get(0).unitId == myId) {
+                Unit closestUnitToConvert = state.findClosestUnitToConvert();
+                if (closestUnitToConvert == null) System.out.println("WAIT");
+                else System.out.println(myId + " CONVERT " + closestUnitToConvert.unitId);
+            } else {
+                int unitId = state.myUnits.get(1).unitId;
+                System.out.println(unitId + " SHOOT " + state.enemyAndNeutralUnits.get(0).unitId);
+            }
         }
-    }
-}
-
-class SpecialAction extends Action {
-    private int targetId;
-
-    public SpecialAction(int unitId, Command command, int targetId) {
-        super(unitId, command);
-        this.targetId = targetId;
-    }
-
-    public int getTargetId() {
-        return targetId;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null) return false;
-        if (!super.equals(o)) return false;
-
-        SpecialAction that = (SpecialAction) o;
-
-        return targetId == that.targetId;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = super.hashCode();
-        result = 31 * result + targetId;
-        return result;
-    }
-
-
-    @Override
-    public String toString() {
-        return unitId + " " + command + " " + targetId;
     }
 }
 

@@ -42,7 +42,7 @@ public class getFinalActionTest {
 
         action = board.getFinalAction(action);
 
-        assertEquals(Action.parseAction("0 WAIT".split(" ")), action);
+        assertEquals(Action.parseAction("WAIT".split(" ")), action);
     }
 
     @Test
@@ -53,7 +53,7 @@ public class getFinalActionTest {
 
         action = board.getFinalAction(action);
 
-        assertEquals(Action.parseAction("0 WAIT".split(" ")), action);
+        assertEquals(Action.parseAction("WAIT".split(" ")), action);
     }
 
     @Test
@@ -91,11 +91,11 @@ public class getFinalActionTest {
         System.err.println(board);
         Action action = Action.parseAction("0 MOVE 2 0".split(" "));
         board.allUnits.add(new Cultist(2, board.tiles[1][Board.HEIGHT - 1], 0));
-        board.getUnit(0).setTile(board.getTile(0, Board.HEIGHT - 1));
+        board.getUnit(0).moveTo(board.getTile(0, Board.HEIGHT - 1));
 
         action = board.getFinalAction(action);
 
-        assertEquals(Action.parseAction("0 WAIT".split(" ")), action);
+        assertEquals(Action.parseAction("WAIT".split(" ")), action);
     }
 
     @Test
@@ -108,7 +108,7 @@ public class getFinalActionTest {
 
         action = board.getFinalAction(action);
 
-        assertEquals(Action.parseAction("0 WAIT".split(" ")), action);
+        assertEquals(Action.parseAction("WAIT".split(" ")), action);
     }
 
     public void ifInRange_thenShoot() {

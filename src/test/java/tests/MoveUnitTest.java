@@ -23,7 +23,7 @@ public class MoveUnitTest {
         Tile oldTile = currentUnit.getTile();
         Tile newTile = board.getTile(currentUnit.getCol() + 1, currentUnit.getRow());
 
-        currentUnit.setTile(newTile);
+        currentUnit.moveTo(newTile);
 
         assertNull(oldTile.getUnit());
         assertSame(currentUnit, newTile.getUnit());

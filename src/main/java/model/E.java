@@ -4,7 +4,7 @@ import java.util.SplittableRandom;
 
 public class E {
     public static final int MAX_DAMAGE = 7;
-    public static final SplittableRandom random = new SplittableRandom();
+    public static SplittableRandom random;
 
     public static final int PLAYER_ONE_ID = 0;
     public static final int PLAYER_TWO_ID = 1;

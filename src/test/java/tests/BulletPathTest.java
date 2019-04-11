@@ -35,13 +35,13 @@ public class BulletPathTest {
 //    public void ifShootOwnUnitOnPath_thenFriendlyFire() {
 //        Unit currentUnit = board.getUnit(4);
 //        Tile unitTile = board.getTile(0, 4);
-//        currentUnit.setTile(unitTile);
+//        currentUnit.moveTo(unitTile);
 //        Unit targetUnit = board.getUnit(5);
 //        Tile targetTile = board.getTile(4, 6);
-//        targetUnit.setTile(targetTile);
+//        targetUnit.moveTo(targetTile);
 //        Tile friendTile = board.getTile(3, 5);
 //        Unit friendUnit = board.getUnit(2);
-//        friendUnit.setTile(friendTile);
+//        friendUnit.moveTo(friendTile);
 //
 //        Tile hitTile = board.checkBulletPath(unitTile, targetTile);
 //
@@ -52,10 +52,10 @@ public class BulletPathTest {
 //    public void ifShootObstacleOnPath_thenFriendlyFire() {
 //        Unit currentUnit = board.getUnit(4);
 //        Tile unitTile = board.getTile(0, 4);
-//        currentUnit.setTile(unitTile);
+//        currentUnit.moveTo(unitTile);
 //        Unit targetUnit = board.getUnit(5);
 //        Tile targetTile = board.getTile(4, 6);
-//        targetUnit.setTile(targetTile);
+//        targetUnit.moveTo(targetTile);
 //        Tile obstacleTile = board.getTile(3, 5);
 //        obstacleTile.setType(Tile.Type.OBSTACLE);
 //
