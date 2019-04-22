@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.SplittableRandom;
 
 public class Referee extends AbstractReferee {
-    public static int MAX_ROUNDS = 400;
+    public static int MAX_ROUNDS = 150;
     private static int FRAME_DURATION = 400;
 
     @Inject
@@ -74,12 +74,14 @@ public class Referee extends AbstractReferee {
 
         } catch (TimeoutException e) {
             gameManager.addToGameSummary(String.format("$%d timeout!", player.getIndex()));
+            gameManager.addTooltip(player, String.format("$%d timeout!", player.getIndex()));
             player.setScore(-1);
             System.err.println(e);
             onEndGame();
             return;
         } catch (Exception e) {
-            gameManager.addToGameSummary(e.getMessage());
+            gameManager.addToGameSummary("Invalid action: " + e.getMessage());
+            gameManager.addTooltip(player, String.format("Invalid action by $%d: " + e.getMessage(), player.getIndex()));
             player.setScore(-1);
             System.err.println(e);
             onEndGame();

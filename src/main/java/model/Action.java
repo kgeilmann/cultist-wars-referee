@@ -9,9 +9,12 @@ public class Action {
     }
 
     static public Action parseAction(String[] output) {
-        if (output[0].equals("WAIT")) {
-
-            return new Action(Command.WAIT);
+        if (output.length == 1) {
+            if (output[0].equals("WAIT")) {
+                return new Action(Command.WAIT);
+            } else {
+                throw new IllegalArgumentException(output[0] + " is not a valid action");
+            }
         }
 
         switch (Command.valueOf(output[1])) {
@@ -32,7 +35,7 @@ public class Action {
                         Command.CONVERT,
                         Integer.parseInt(output[2]));
             default:
-                throw new IllegalArgumentException(output[1] + " is not a valid action");
+                throw new IllegalArgumentException(output[0] + " " + output[1] + " is not a valid action");
         }
 
     }
