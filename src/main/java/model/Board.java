@@ -255,7 +255,7 @@ public class Board {
 
         Tile startTile = tiles[currentUnit.getCol()][currentUnit.getRow()];
         Tile targetTile = tiles[target.getCol()][target.getRow()];
-        Tile hitTile = checkBulletPath(startTile, targetTile);
+        Tile hitTile  = checkBulletPath(startTile, targetTile);
 
         if (hitTile.getUnit() != null) {
             int distance = unitDistance(currentUnit, hitTile.getUnit());
@@ -275,10 +275,18 @@ public class Board {
     https://github.com/fragkakis/bresenham/blob/master/src/main/java/org/fragkakis/Bresenham.java
      */
     public Tile checkBulletPath(Tile startTile, Tile targetTile) {
-        int x0 = startTile.getX();
-        int y0 = startTile.getY();
-        int x1 = targetTile.getX();
-        int y1 = targetTile.getY();
+        int x0, y0, x1, y1;
+        if (startTile.getY() < targetTile.getY()) {
+            x0 = startTile.getX();
+            y0 = startTile.getY();
+            x1 = targetTile.getX();
+            y1 = targetTile.getY();
+        } else {
+            x0 = targetTile.getX();
+            y0 = targetTile.getY();
+            x1 = startTile.getX();
+            y1 = startTile.getY();
+        }
 
         int dx = Math.abs(x1 - x0);
         int dy = Math.abs(y1 - y0);
@@ -292,8 +300,6 @@ public class Board {
         int currentY = y0;
 
         while (true) {
-            if (currentX == x1 && currentY == y1) break;
-
             e2 = 2 * err;
             if (e2 > -1 * dy) {
                 err -= dy;
@@ -304,6 +310,8 @@ public class Board {
                 err += dx;
                 currentY += sy;
             }
+
+            if (currentX == x1 && currentY == y1) break;
 
             if (tiles[currentX][currentY].getType().equals(Tile.Type.OBSTACLE)
                     || (tiles[currentX][currentY].getUnit() != null
@@ -427,22 +435,6 @@ public class Board {
     }
 
 
-
-    @Override
-    public String toString() {
-        StringBuilder boardSb = new StringBuilder();
-        for (int y = 0; y < HEIGHT; y++) {
-            for (int x = 0; x < WIDTH; x++) {
-                if (tiles[x][y].getType().equals(Tile.Type.FLOOR)) {
-                    boardSb.append(".");
-                } else {
-                    boardSb.append("x");
-                }
-            }
-            boardSb.append("\n");
-        }
-        return boardSb.toString();
-    }
 
     public Action getFinalAction(Action action) {
         switch (action.getCommand()) {
@@ -587,5 +579,23 @@ public class Board {
             currentNode = currentNode.parent;
         }
         return currentNode.tile;
+    }
+
+
+
+    @Override
+    public String toString() {
+        StringBuilder boardSb = new StringBuilder();
+        for (int y = 0; y < HEIGHT; y++) {
+            for (int x = 0; x < WIDTH; x++) {
+                if (tiles[x][y].getType().equals(Tile.Type.FLOOR)) {
+                    boardSb.append(".");
+                } else {
+                    boardSb.append("x");
+                }
+            }
+            boardSb.append("\n");
+        }
+        return boardSb.toString();
     }
 }

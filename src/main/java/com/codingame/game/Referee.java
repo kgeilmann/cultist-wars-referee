@@ -4,6 +4,7 @@ import com.codingame.gameengine.core.AbstractPlayer.TimeoutException;
 import com.codingame.gameengine.core.AbstractReferee;
 import com.codingame.gameengine.core.MultiplayerGameManager;
 import com.codingame.gameengine.module.entities.GraphicEntityModule;
+import com.codingame.gameengine.module.tooltip.TooltipModule;
 import com.google.inject.Inject;
 import model.*;
 import view.ViewController;
@@ -14,11 +15,14 @@ import java.util.SplittableRandom;
 public class Referee extends AbstractReferee {
     public static int MAX_ROUNDS = 150;
     private static int FRAME_DURATION = 400;
+    private static int TURN_TIME = 50;
 
     @Inject
     private MultiplayerGameManager<Player> gameManager;
     @Inject
     private GraphicEntityModule graphicEntityModule;
+    @Inject
+    private TooltipModule tooltips;
 
     private ViewController viewController;
     private Board board;
@@ -28,11 +32,11 @@ public class Referee extends AbstractReferee {
         E.random = new SplittableRandom(gameManager.getSeed());
         gameManager.setMaxTurns(MAX_ROUNDS);
         gameManager.setFrameDuration(FRAME_DURATION);
-        gameManager.setTurnMaxTime(50);
+        gameManager.setTurnMaxTime(TURN_TIME);
 
         board = new Board(false);
 
-        viewController = new ViewController(graphicEntityModule, gameManager, board);
+        viewController = new ViewController(graphicEntityModule, gameManager, tooltips, board);
         viewController.createTilesView();
         viewController.createUnitsView();
         viewController.createFxView();

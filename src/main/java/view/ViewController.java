@@ -3,6 +3,7 @@ package view;
 import com.codingame.game.Player;
 import com.codingame.gameengine.core.MultiplayerGameManager;
 import com.codingame.gameengine.module.entities.*;
+import com.codingame.gameengine.module.tooltip.TooltipModule;
 import model.*;
 
 import java.util.ArrayList;
@@ -21,9 +22,11 @@ public class ViewController {
     public static final int UNIT_Z = 0;
     public static final int FX_Z = 100;
 
-    private BufferedGroup tileGroup;
+
+    private Group tileGroup;
     private GraphicEntityModule graphicEntityModule;
     private MultiplayerGameManager<Player> gameManager;
+    private TooltipModule tooltips;
     private Board board;
     private List<Group> unitSpriteGroups;
     private List<Sprite> unitSprites;
@@ -37,9 +40,11 @@ public class ViewController {
     public ViewController(
             GraphicEntityModule graphicEntityModule,
             MultiplayerGameManager<Player> gameManager,
+            TooltipModule tooltips,
             Board board) {
         this.graphicEntityModule = graphicEntityModule;
         this.gameManager = gameManager;
+        this.tooltips = tooltips;
         this.board = board;
     }
 
@@ -48,23 +53,26 @@ public class ViewController {
         // TODO: switch to using FX module
         // TODO: add sleeping pod in middle
 
-        tileGroup = graphicEntityModule.createBufferedGroup()
+        tileGroup = graphicEntityModule.createGroup()
                 .setX(BOARD_OFFSET_X - ENTITY_SIZE)
                 .setY(BOARD_OFFSET_Y - ENTITY_SIZE).setZIndex(TILE_Z);
 
         for (int x = 1; x < Board.WIDTH + 1; x++) {
             for (int y = 1; y < Board.HEIGHT + 1; y++) {
+                Sprite tile;
                 if (board.getTile(x - 1, y - 1).getType().equals(Tile.Type.OBSTACLE)) {
-                    tileGroup.add(graphicEntityModule.createSprite()
+                    tile = graphicEntityModule.createSprite()
                             .setImage("obstacle_" + E.random.nextInt(6) + ".png")
                             .setX(x * ENTITY_SIZE)
-                            .setY(y * ENTITY_SIZE));
+                            .setY(y * ENTITY_SIZE);
                 } else {
-                    tileGroup.add(graphicEntityModule.createSprite()
+                    tile = graphicEntityModule.createSprite()
                             .setImage("floor_1.png")
                             .setX(x * ENTITY_SIZE)
-                            .setY(y * ENTITY_SIZE));
+                            .setY(y * ENTITY_SIZE);
                 }
+                tooltips.setTooltipText(tile, (x - 1) + ", " + (y - 1));
+                tileGroup.add(tile);
             }
         }
 
@@ -133,7 +141,6 @@ public class ViewController {
                     createUnitView("layman.png", unit);
             }
         }
-
     }
 
     public void createFxView() {
@@ -172,6 +179,9 @@ public class ViewController {
         Sprite unitSprite = graphicEntityModule.createSprite()
                 .setImage(sprite)
                 .setZIndex(UNIT_Z);
+
+        tooltips.setTooltipText(unitSprite, unit.toString());
+
         unitSprites.add(unitSprite);
         Sprite shadowSprite = graphicEntityModule.createSprite()
                 .setImage("shadow.png")
@@ -276,6 +286,7 @@ public class ViewController {
                         unitSpriteGroups.get(unitId),
                         currentUnit.getCol(),
                         currentUnit.getRow());
+                tooltips.setTooltipText(unitSprites.get(unitId), currentUnit.toString());
                 break;
             case SHOOT:
                 Unit hitUnit = affectedTile.getUnit();
@@ -291,6 +302,9 @@ public class ViewController {
                 bulletAnimation(currentUnit.getTile(), affectedTile);
                 unitHitAnimation(affectedTile);
                 updateHealthBar(affectedTile.getUnit());
+                if (hitUnit != null && hitUnit.isInGame()) {
+                    tooltips.setTooltipText(unitSprites.get(hitUnit.getUnitId()), hitUnit.toString());
+                }
                 break;
             case CONVERT:
                 SpecialAction specialAction = (SpecialAction) action;
@@ -306,6 +320,7 @@ public class ViewController {
                         .setText("Units: " + board.getNumberOfUnits(E.PLAYER_ONE_ID));
                 unitNumberHud[E.PLAYER_TWO_ID]
                         .setText("Units: " + board.getNumberOfUnits(E.PLAYER_TWO_ID));
+                tooltips.setTooltipText(affectedSprite, board.getUnit(specialAction.getTargetId()).toString());
                 break;
         }
     }
@@ -359,7 +374,7 @@ public class ViewController {
     }
 
     public String endGameView(String winner) {
-        String winningString = winner == null? "It's a tie!" : (winner + " won!");
+        String winningString = winner == null ? "It's a tie!" : (winner + " won!");
         Rectangle whiteRect = graphicEntityModule.createRectangle()
                 .setWidth(1920)
                 .setHeight(1080)

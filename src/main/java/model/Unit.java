@@ -64,4 +64,11 @@ public abstract class Unit {
             isInGame = false;
         }
     }
+
+    @Override
+    public String toString() {
+        return "hp=" + hp +
+                "\ntile=(" + tile.getX() + ", " + tile.getY() + ")" +
+                "\nplayerId=" + playerId;
+    }
 }

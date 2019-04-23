@@ -26,6 +26,9 @@
                 coordinate <strong>X=0</strong>, <strong>Y=0</strong> is the top left tile. The positions of obstacles and
                 neutral units is randomly generated, but is symmetric.<br>
 
+                The source code of the game is available here: https://bitbucket.org/Nixerrr/cultist-wars/src
+                <br>
+
                 <br>
 
                 <strong>Units</strong>, there are three types:
@@ -61,7 +64,9 @@
                 <ul>
                     <li><strong>Damage</strong> is 7 - distance. Therefore, the maximum damage is 6 hp.</li>
                     <li>The range of <strong>Cultists</strong> is <const>6</const>. Distances are calculated using <strong>Manhattan distance</strong>.</li>
-                    <li>The path of bullets is calculated based on <a href="https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm" target="_blank">Bresenham's line algorithm</a>.</li>
+                    <li>The path of bullets is calculated based on <a href="https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm" target="_blank">Bresenham's line algorithm</a>,
+                        <strong>always drawing the line from lower Y towards higher Y.</strong></li>
+
                     <li>If an obstacle or any unit is on the bullet path between the shooter and the target, then it's hit instead of the target.</li>
                     <li>Obstacles are indestructible.<br>
                         <img src="https://i.imgur.com/pgEs19K.jpg" style="max-width:50%;max-height:50%;"></li>
