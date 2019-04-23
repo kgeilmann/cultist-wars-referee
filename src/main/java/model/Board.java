@@ -316,7 +316,7 @@ public class Board {
             if (tiles[currentX][currentY].getType().equals(Tile.Type.OBSTACLE)
                     || (tiles[currentX][currentY].getUnit() != null
                     && tiles[currentX][currentY].getUnit().isInGame)) {
-                return tiles[currentX][currentY];
+                targetTile = tiles[currentX][currentY];
             }
         }
         return targetTile;

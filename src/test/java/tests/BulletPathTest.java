@@ -31,6 +31,20 @@ public class BulletPathTest {
         assertEquals(target.getTile(), hitTile);
     }
 
+    @Test
+    public void ifShootNeutralOnPath_thenHitNeutral() {
+        board.allUnits.add(new Cultist(2, board.getTile(3, 2), 0));
+        board.allUnits.add(new Cultist(8, board.getTile(8, 2), 1));
+        board.allUnits.add(new Cultist(12, board.getTile(6, 2), 2));
+        board.getUnit(1).moveTo(board.getTile(9, 2));
+        Unit unit = board.getUnit(2);
+        Unit target = board.getUnit(1);
+
+        Tile hitTile = board.checkBulletPath(unit.getTile(), target.getTile());
+
+        assertEquals(board.getTile(6, 2), hitTile);
+    }
+
 //    @Test
 //    public void ifShootOwnUnitOnPath_thenFriendlyFire() {
 //        Unit currentUnit = board.getUnit(4);
