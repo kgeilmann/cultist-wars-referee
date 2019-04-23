@@ -255,7 +255,7 @@ public class Board {
 
         Tile startTile = tiles[currentUnit.getCol()][currentUnit.getRow()];
         Tile targetTile = tiles[target.getCol()][target.getRow()];
-        Tile hitTile  = checkBulletPath(startTile, targetTile);
+        Tile hitTile = checkBulletPath(startTile, targetTile);
 
         if (hitTile.getUnit() != null) {
             int distance = unitDistance(currentUnit, hitTile.getUnit());
@@ -275,18 +275,63 @@ public class Board {
     https://github.com/fragkakis/bresenham/blob/master/src/main/java/org/fragkakis/Bresenham.java
      */
     public Tile checkBulletPath(Tile startTile, Tile targetTile) {
-        int x0, y0, x1, y1;
         if (startTile.getY() < targetTile.getY()) {
-            x0 = startTile.getX();
-            y0 = startTile.getY();
-            x1 = targetTile.getX();
-            y1 = targetTile.getY();
+            return bresenhamForward(startTile, targetTile);
         } else {
-            x0 = targetTile.getX();
-            y0 = targetTile.getY();
-            x1 = startTile.getX();
-            y1 = startTile.getY();
+            return bresenhamBackward(startTile,targetTile);
         }
+    }
+
+    private Tile bresenhamForward(Tile startTile, Tile targetTile) {
+        int x0, y0, x1, y1;
+        x0 = startTile.getX();
+        y0 = startTile.getY();
+        x1 = targetTile.getX();
+        y1 = targetTile.getY();
+
+
+        int dx = Math.abs(x1 - x0);
+        int dy = Math.abs(y1 - y0);
+
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+
+        int err = dx - dy;
+        int e2;
+        int currentX = x0;
+        int currentY = y0;
+
+        while (true) {
+            e2 = 2 * err;
+            if (e2 > -1 * dy) {
+                err -= dy;
+                currentX += sx;
+            }
+
+            if (e2 < dx) {
+                err += dx;
+                currentY += sy;
+            }
+
+            if (currentX == x1 && currentY == y1) break;
+
+            if (tiles[currentX][currentY].getType().equals(Tile.Type.OBSTACLE)
+                    || (tiles[currentX][currentY].getUnit() != null
+                    && tiles[currentX][currentY].getUnit().isInGame)) {
+                return tiles[currentX][currentY];
+            }
+        }
+        return targetTile;
+    }
+
+    private Tile bresenhamBackward(Tile startTile, Tile targetTile) {
+        int x0, y0, x1, y1;
+
+        x0 = targetTile.getX();
+        y0 = targetTile.getY();
+        x1 = startTile.getX();
+        y1 = startTile.getY();
+
 
         int dx = Math.abs(x1 - x0);
         int dy = Math.abs(y1 - y0);
@@ -321,6 +366,7 @@ public class Board {
         }
         return targetTile;
     }
+
 
     private int unitDistance(Unit currentUnit, Unit target) {
         Tile unitTile = tiles[currentUnit.getCol()][currentUnit.getRow()];
@@ -388,10 +434,10 @@ public class Board {
             throw new IllegalArgumentException("Only cult leaders can convert");
         }
         if (!allUnits.get(action.getUnitId()).isInGame()) {
-            throw new IllegalArgumentException("Unit " + action.getUnitId() +  " is no longer in game");
+            throw new IllegalArgumentException("Unit " + action.getUnitId() + " is no longer in game");
         }
         if (!allUnits.get(action.getTargetId()).isInGame()) {
-            throw new IllegalArgumentException("Unit " + action.getTargetId() +  " is no longer in game");
+            throw new IllegalArgumentException("Unit " + action.getTargetId() + " is no longer in game");
         }
     }
 
@@ -412,10 +458,10 @@ public class Board {
             throw new IllegalArgumentException("Cult leaders cannot shoot.");
         }
         if (!allUnits.get(action.getUnitId()).isInGame()) {
-            throw new IllegalArgumentException("Unit " + action.getUnitId() +  " is no longer in game");
+            throw new IllegalArgumentException("Unit " + action.getUnitId() + " is no longer in game");
         }
         if (!allUnits.get(action.getTargetId()).isInGame()) {
-            throw new IllegalArgumentException("Unit " + action.getTargetId() +  " is no longer in game");
+            throw new IllegalArgumentException("Unit " + action.getTargetId() + " is no longer in game");
         }
     }
 
@@ -430,10 +476,9 @@ public class Board {
             throw new IllegalArgumentException("Invalid coordinates");
         }
         if (!allUnits.get(action.getUnitId()).isInGame()) {
-            throw new IllegalArgumentException("Unit " + action.getUnitId() +  " is no longer in game");
+            throw new IllegalArgumentException("Unit " + action.getUnitId() + " is no longer in game");
         }
     }
-
 
 
     public Action getFinalAction(Action action) {
@@ -580,7 +625,6 @@ public class Board {
         }
         return currentNode.tile;
     }
-
 
 
     @Override
