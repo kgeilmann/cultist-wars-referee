@@ -165,12 +165,15 @@ public class Referee extends AbstractReferee {
     private void moveNeutralUnit() {
         List<Unit> neutralUnits = board.getNeutralUnits();
         if (!neutralUnits.isEmpty()) {
-            Unit neutralUnit = neutralUnits.get(E.random.nextInt(neutralUnits.size()));
-            List<Action> validActions = board.getValidActionsOfNeutralUnit(neutralUnit);
-            if (!validActions.isEmpty()) {
-                Action action = validActions.get(E.random.nextInt(validActions.size()));
-                board.update(neutralUnit, action);
-                viewController.updateView(neutralUnit, action, null);
+            int index = Random.rand(Board.NUMBER_OF_NEUTRALS);
+            if (index < neutralUnits.size()) {
+                Unit neutralUnit = neutralUnits.get(index);
+                List<Action> validActions = board.getValidActionsOfNeutralUnit(neutralUnit);
+                if (!validActions.isEmpty()) {
+                    Action action = validActions.get(Random.rand(validActions.size()));
+                    board.update(neutralUnit, action);
+                    viewController.updateView(neutralUnit, action, null);
+                }
             }
         }
     }
