@@ -45,6 +45,9 @@ public class Referee extends AbstractReferee {
 
     @Override
     public void gameTurn(int turn) {
+        // the engine starts counting turns at one, the referee assumes starting at zero (as it was in older versions of the engine)
+        // so adapt here.
+        turn--;
         int playerId = turn % 2;
 
         Player player = gameManager.getPlayer(playerId);
