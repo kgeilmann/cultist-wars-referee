@@ -25,14 +25,13 @@ public class CommandLineInterface {
                    .addOption("p2", true, "Required. Player 2 command line.")
                    .addOption("s", false, "Server mode")
                    .addOption("l", true, "File output for logs")
-                   .addOption("d", true, "Referee seed")
-                   .addOption("psy", false, "Format command line output for psyleague instead of brutaltester");
+                   .addOption("d", true, "Referee seed");
 
             CommandLine cmd = new DefaultParser().parse(options, args);
 
             if (cmd.hasOption("h") || !cmd.hasOption("p1") || !cmd.hasOption("p2")) {
                 new HelpFormatter().printHelp(
-                        "-p1 <player1 command line> -p2 <player2 command line> [-s -l <File output for logs> -d <seed> -psy]",
+                        "-p1 <player1 command line> -p2 <player2 command line> [-s -l <File output for logs> -d <seed>]",
                         options);
                 System.exit(0);
             }
@@ -70,20 +69,12 @@ public class CommandLineInterface {
                          .write((String) getJSONResult.invoke(gameRunner));
                 }
 
-                if (cmd.hasOption("psy")) {
-                    int score_p1 = result.scores.get(0);
-                    int score_p2 = result.scores.get(1);
-                    System.out.println(
-                            ((score_p1 >= score_p2) ? "0" : "1") + " " + ((score_p2 >= score_p1) ? "0" : "1") + " " + ((
-                                    score_p1 == -1) ? "1" : "0") + " " + ((score_p2 == -1) ? "1" : "0"));
-                } else {
-                    for (int i = 0; i < playerCount; ++i) {
-                        System.out.println(result.scores.get(i));
-                    }
+                for (int i = 0; i < playerCount; ++i) {
+                    System.out.println(result.scores.get(i));
+                }
 
-                    for (String line : result.gameParameters) {
-                        System.out.println(line);
-                    }
+                for (String line : result.gameParameters) {
+                    System.out.println(line);
                 }
             }
 
